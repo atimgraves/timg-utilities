@@ -1,0 +1,8 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: TimGUtilities
+Bundle-SymbolicName: TimGUtilities
+Bundle-Version: 1.0.9
+Export-Package: timgutilities.textio;version="1.0.9"
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Automatic-Module-Name: Utilities

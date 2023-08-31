@@ -1631,6 +1631,35 @@ public class TextIOUtils {
 	}
 
 	/**
+	 * ask for the date / time with a timezone requested by name and offering a
+	 * default of the current TZ
+	 * 
+	 * @param prompt
+	 * @return
+	 * @throws IOException
+	 */
+	public static String getISODateTimeTimeZone(String prompt) throws IOException {
+		return getISODateTimeTimeZone(prompt, true, true, true);
+	}
+
+	/**
+	 * 
+	 * @param prompt
+	 * @param zoneId
+	 * @return
+	 * @throws IOException
+	 */
+	public static String getISODateTimeTimeZone(String prompt, ZoneId zoneId) throws IOException {
+		String zoneInfo = " (in timezone " + zoneId.getId() + ")";
+		String date = getISODate(prompt + zoneInfo);
+		String time = getISOTime(prompt + zoneInfo);
+		String dtg = date + "T" + time;
+		LocalDateTime ldt = LocalDateTime.parse(dtg);
+		ZonedDateTime zdt = ZonedDateTime.of(ldt, zoneId);
+		return zdt.format(DateTimeFormatter.ISO_DATE_TIME);
+	}
+
+	/**
 	 * prompts for an offset from GMP in terms of hours an mins, the resulting
 	 * string will be 01:00 (in the case of british summer time which is 1 hours
 	 * ahead of GMT, or 04:30) for India which is 4 1/2 hours ahead.
