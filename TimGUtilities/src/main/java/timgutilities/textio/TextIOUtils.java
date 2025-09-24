@@ -1,4 +1,4 @@
-/*Copyright (c) 2023 Tim Graves.
+/*Copyright (c) 2025 Tim Graves.
 
 The Universal Permissive License (UPL), Version 1.0
 
@@ -74,7 +74,7 @@ public class TextIOUtils {
 	private static BufferedReader br;
 
 	/**
-	 * If needed setup the appriopriate buffered reader on Standard-in
+	 * If needed setup the appropriate buffered reader on Standard-in
 	 */
 	private static void setupInput() {
 		if (br == null) {
@@ -414,7 +414,7 @@ public class TextIOUtils {
 	 * @throws IOException
 	 */
 	public static int getStringChoice(String prompt, String options[]) throws IOException {
-		return getIntChoice(prompt, new ChoiceDescriptionData<String>(options));
+		return getIntChoice(prompt, new ChoiceDescriptionData<>(options));
 	}
 
 	/**
@@ -429,7 +429,7 @@ public class TextIOUtils {
 	 * @throws IOException
 	 */
 	public static int getIntChoice(String prompt, Collection<String> options) throws IOException {
-		return getIntChoice(prompt, new ChoiceDescriptionData<String>(options));
+		return getIntChoice(prompt, new ChoiceDescriptionData<>(options));
 	}
 
 	/**
@@ -459,7 +459,7 @@ public class TextIOUtils {
 	 * @throws IOException
 	 */
 	public static String getStringChoice(String prompt, Collection<String> options) throws IOException {
-		ChoiceDescriptionData<String> cdd = new ChoiceDescriptionData<String>(options);
+		ChoiceDescriptionData<String> cdd = new ChoiceDescriptionData<>(options);
 		return getStringChoice(prompt, cdd);
 	}
 
@@ -787,7 +787,7 @@ public class TextIOUtils {
 	 * 
 	 * BELOW - input must be < lower limit, upper limit is ignored
 	 * 
-	 * RANGE - input must be >= lowwer limit and <= upper limit
+	 * RANGE - input must be >= lower limit and <= upper limit
 	 * 
 	 * SELECTION - the same a RANGE, but no restriction text is displayed
 	 * 
@@ -1882,5 +1882,26 @@ public class TextIOUtils {
 		} else {
 			return "" + number;
 		}
+	}
+
+	@SuppressWarnings("unchecked")
+	public static <T extends Enum<T>> ChoiceDescriptionData<Enum<T>> buildChoiceDescriptionDataFromSampleEnumValue(
+			Enum<T> enumconstant) {
+		return buildChoiceDescriptionDataFromEnumClass((Class<? extends Enum<T>>) enumconstant.getClass());
+	}
+
+	public static <T extends Enum<T>> ChoiceDescriptionData<Enum<T>> buildChoiceDescriptionDataFromEnumClass(
+			Class<? extends Enum<T>> enumclass) {
+		return buildChoiceDescriptionDataFromEnumValues(enumclass.getEnumConstants());
+	}
+
+	public static <T extends Enum<T>> ChoiceDescriptionData<Enum<T>> buildChoiceDescriptionDataFromEnumValues(
+			Enum<T> enumconstants[]) {
+		ChoiceDescriptionData<Enum<T>> cdd = new ChoiceDescriptionData<>();
+		for (Enum<T> enumconstant : enumconstants) {
+			ChoiceDescription<Enum<T>> cd = new ChoiceDescription<>(enumconstant.toString(), enumconstant);
+			cdd.addChoiceDescription(cd);
+		}
+		return cdd;
 	}
 }
