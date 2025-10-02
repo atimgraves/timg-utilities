@@ -156,7 +156,7 @@ public class ChoiceDescription<P> implements Comparable<ChoiceDescription<?>> {
 
 	/**
 	 * returns the "display" text, if separateFields it true then the output is
-	 * split byt he FIELD_SEPARATOR< if it's false then the option, description and
+	 * split by the FIELD_SEPARATOR< if it's false then the option, description and
 	 * additional are just concatenated together
 	 * 
 	 * @param separateFields

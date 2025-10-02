@@ -143,7 +143,7 @@ public class TextIOUtils {
 
 	/**
 	 * Displays the provided prompt and asks for input. If the defaultValue is non
-	 * null that is diplayed and entering nothing (e.g. just pressing return) will
+	 * null that is displayed and entering nothing (e.g. just pressing return) will
 	 * return the default value given, if there is not default value and
 	 * allowEmptyInput is false then pressing return results in a notice that input
 	 * is required, if allowEmptyInput is true and the user just presses return the
@@ -378,28 +378,32 @@ public class TextIOUtils {
 	 */
 
 	public static int getIntChoice(String prompt, ChoiceDescriptionData<?> choiceDescriptionData) throws IOException {
+		if (choiceDescriptionData == null) {
+			throw new IOException("ChoiceDescriptionData cannot be null");
+		}
+		int choicesCount = choiceDescriptionData.length();
+		if (choicesCount == 0) {
+			throw new IOException("Must provide at least once choice option");
+		}
+		// if there is only one option then return it automatically
+		if (choicesCount == 1) {
+			doOutput("Only option " + choiceDescriptionData.getChoice(0) + " is available, selecting it for you");
+			return 0;
+		}
 		String processedPrompt = prompt;
 		if (processedPrompt == null) {
 			processedPrompt = "Please chose from";
 		}
-		if (choiceDescriptionData == null) {
-			throw new IOException("ChoiceDescriptionData cannot be null");
-		}
-		if (choiceDescriptionData.length() == 0) {
-			throw new IOException("Must provide at least once choice option");
-		}
-		// if there is only one option then return it automatically
-		if (choiceDescriptionData.length() == 1) {
-			System.out.println(
-					"Only option " + choiceDescriptionData.getChoice(0) + " is available, selecting it for you");
-			return 0;
-		}
 		processedPrompt = processedPrompt + "\nOptions are ";
-		int choices = choiceDescriptionData.length();
-		for (int i = 0; i < choices; i++) {
-			processedPrompt = processedPrompt + "\n[" + i + "] = " + choiceDescriptionData.getData(i);
+		processedPrompt += choiceDescriptionData.getChoicesString();
+
+		Integer defaultIndex = choiceDescriptionData.getDefaultOptionNumber();
+		if (defaultIndex != null) {
+			processedPrompt += "\n";
+			return getInt(processedPrompt, NUM_TYPE.SELECTION, 0, choicesCount - 1, defaultIndex);
+		} else {
+			return getInt(processedPrompt, NUM_TYPE.SELECTION, 0, choicesCount - 1);
 		}
-		return getInt(processedPrompt, NUM_TYPE.SELECTION, 0, choices - 1);
 	}
 
 	/**
@@ -413,8 +417,67 @@ public class TextIOUtils {
 	 * @return
 	 * @throws IOException
 	 */
-	public static int getStringChoice(String prompt, String options[]) throws IOException {
-		return getIntChoice(prompt, new ChoiceDescriptionData<>(options));
+	public static String getStringChoice(String prompt, String options[]) throws IOException {
+		return getStringChoice(prompt, options, -1);
+	}
+
+	/**
+	 * 
+	 * Displays the prompt, then the strings in the options array. The user is
+	 * prompted to enter an integer representing the choice which is then returned
+	 * to the caller if it represents one of the choices.
+	 * 
+	 * if defaultValue is non null AND is one of the options then the user can just
+	 * press return instead of entering a number to select it
+	 * 
+	 * @param prompt
+	 * @param options
+	 * @return
+	 * @throws IOException
+	 */
+	public static String getStringChoice(String prompt, String options[], String defaultValue) throws IOException {
+		ChoiceDescriptionData<?> cdd = new ChoiceDescriptionData<>(options);
+		cdd.setDefaultByOption(defaultValue);
+		return options[getIntChoice(prompt, cdd)];
+	}
+
+	/**
+	 * 
+	 * Displays the prompt, then the strings in the options array. The user is
+	 * prompted to enter an integer representing the choice which is then returned
+	 * to the caller if it represents one of the choices.
+	 * 
+	 * if defaultIndex is between 0 and the mad options size then the user can just
+	 * press return instead of entering a number to select it
+	 * 
+	 * @param prompt
+	 * @param options
+	 * @return
+	 * @throws IOException
+	 */
+	public static String getStringChoice(String prompt, String options[], Integer defaultIndex) throws IOException {
+		ChoiceDescriptionData<?> cdd = new ChoiceDescriptionData<>(options);
+		if (defaultIndex != null) {
+			if ((defaultIndex >= 0) && (defaultIndex < cdd.length())) {
+				cdd.setDefaultByIndex(defaultIndex);
+			}
+		}
+		return options[getIntChoice(prompt, cdd)];
+	}
+
+	/**
+	 * 
+	 * Displays the prompt, then the strings in the options array. The user is
+	 * prompted to enter an integer representing the choice which is then returned
+	 * to the caller if it represents one of the choices.
+	 * 
+	 * @param prompt
+	 * @param options
+	 * @return
+	 * @throws IOException
+	 */
+	public static int getIntChoice(String prompt, String options[]) throws IOException {
+		return getIntChoice(prompt, options, null);
 	}
 
 	/**
@@ -429,7 +492,41 @@ public class TextIOUtils {
 	 * @throws IOException
 	 */
 	public static int getIntChoice(String prompt, Collection<String> options) throws IOException {
-		return getIntChoice(prompt, new ChoiceDescriptionData<>(options));
+		return getIntChoice(prompt, options, null);
+	}
+
+	/**
+	 * 
+	 * Displays the prompt, then the strings in the options collection. The user is
+	 * prompted to enter an integer representing the choice which is then returned
+	 * to the caller if it represents one of the choices.
+	 * 
+	 * @param prompt
+	 * @param options
+	 * @return
+	 * @throws IOException
+	 */
+	public static int getIntChoice(String prompt, Collection<String> options, String defaultValue) throws IOException {
+		ChoiceDescriptionData<?> cdd = new ChoiceDescriptionData<>(options);
+		cdd.setDefaultByOption(defaultValue);
+		return getIntChoice(prompt, cdd);
+	}
+
+	/**
+	 * 
+	 * Displays the prompt, then the strings in the options collection. The user is
+	 * prompted to enter an integer representing the choice which is then returned
+	 * to the caller if it represents one of the choices.
+	 * 
+	 * @param prompt
+	 * @param options
+	 * @return
+	 * @throws IOException
+	 */
+	public static int getIntChoice(String prompt, String options[], String defaultValue) throws IOException {
+		ChoiceDescriptionData<?> cdd = new ChoiceDescriptionData<>(options);
+		cdd.setDefaultByOption(defaultValue);
+		return getIntChoice(prompt, cdd);
 	}
 
 	/**
@@ -459,7 +556,48 @@ public class TextIOUtils {
 	 * @throws IOException
 	 */
 	public static String getStringChoice(String prompt, Collection<String> options) throws IOException {
+		return getStringChoice(prompt, options, (String) null);
+	}
+
+	/**
+	 * 
+	 * Displays the prompt, then the strings in the options collection. The user is
+	 * prompted to enter an integer representing the choice, if it represents one of
+	 * the choices then the string for that choice is returned.
+	 * 
+	 * If the defaultValue is not null and is one of the options then it will be
+	 * marked as the default and the user can just press return to select it
+	 * 
+	 * @param prompt
+	 * @param options
+	 * @return
+	 * @throws IOException
+	 */
+	public static String getStringChoice(String prompt, Collection<String> options, String defaultValue)
+			throws IOException {
 		ChoiceDescriptionData<String> cdd = new ChoiceDescriptionData<>(options);
+		cdd.setDefaultByOption(defaultValue);
+		return getStringChoice(prompt, cdd);
+	}
+
+	/**
+	 * 
+	 * Displays the prompt, then the strings in the options collection. The user is
+	 * prompted to enter an integer representing the choice, if it represents one of
+	 * the choices then the string for that choice is returned.
+	 * 
+	 * If the defaultValue is not null and is one of the options then it will be
+	 * marked as the default and the user can just press return to select it
+	 * 
+	 * @param prompt
+	 * @param options
+	 * @return
+	 * @throws IOException
+	 */
+	public static String getStringChoice(String prompt, Collection<String> options, Integer defaultValue)
+			throws IOException {
+		ChoiceDescriptionData<String> cdd = new ChoiceDescriptionData<>(options);
+		cdd.setDefaultByIndex(defaultValue);
 		return getStringChoice(prompt, cdd);
 	}
 
@@ -497,7 +635,7 @@ public class TextIOUtils {
 	 * @throws IOException
 	 */
 	public static String getString(String prompt, String options[]) throws IOException {
-		return options[getStringChoice(prompt, options)];
+		return options[getIntChoice(prompt, options)];
 	}
 
 	/**
@@ -1887,7 +2025,26 @@ public class TextIOUtils {
 	@SuppressWarnings("unchecked")
 	public static <T extends Enum<T>> ChoiceDescriptionData<Enum<T>> buildChoiceDescriptionDataFromSampleEnumValue(
 			Enum<T> enumconstant) {
-		return buildChoiceDescriptionDataFromEnumClass((Class<? extends Enum<T>>) enumconstant.getClass());
+		return buildChoiceDescriptionDataFromSampleEnumValue(enumconstant, true);
+	}
+
+	@SuppressWarnings("unchecked")
+	public static <T extends Enum<T>> ChoiceDescriptionData<Enum<T>> buildChoiceDescriptionDataFromSampleEnumValue(
+			Enum<T> enumconstant, boolean setAsDefault) {
+		ChoiceDescriptionData<Enum<T>> cdd = buildChoiceDescriptionDataFromEnumClass(
+				(Class<? extends Enum<T>>) enumconstant.getClass());
+		if (setAsDefault) {
+			ChoiceDescription<Enum<T>> defaultChoice = cdd.locateChoiceDescriptionByParam(enumconstant);
+			if (defaultChoice == null) {
+				// this shoudl not be possible as we build it using all of the enum values but
+				// defensive programing and all that
+				System.err.println("Major programming problem, cannot locate the CDD with param " + enumconstant
+						+ " unable to set it as default");
+			} else {
+				cdd.setDefaultByChoiceDescription(defaultChoice);
+			}
+		}
+		return cdd;
 	}
 
 	public static <T extends Enum<T>> ChoiceDescriptionData<Enum<T>> buildChoiceDescriptionDataFromEnumClass(
