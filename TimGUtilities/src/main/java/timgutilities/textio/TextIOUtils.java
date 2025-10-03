@@ -44,6 +44,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
@@ -1676,6 +1677,18 @@ public class TextIOUtils {
 	}
 
 	/**
+	 * ask for the date / time with a timezone requested by name and offering a
+	 * default of the current TZ
+	 * 
+	 * @param prompt
+	 * @return
+	 * @throws IOException
+	 */
+	public static String getISODateTimeTimeZone(String prompt) throws IOException {
+		return getISODateTimeTimeZone(prompt, true, true, true);
+	}
+
+	/**
 	 * Asks the user to enter a data and time (but no time zone) returns a string in
 	 * the format YYYY-MM-DDTHH:mm Attempts to ensure that the entered data is valid
 	 * (e.g. that the day is only allowed values for the month, so 1-30 for april,
@@ -1712,7 +1725,26 @@ public class TextIOUtils {
 
 	/**
 	 * Asks the user to enter a data and time (but no time zone) returns a string in
-	 * the format YYYY-MM-DDTHH:mm:SS
+	 * the format YYYY-MM-DDTHH:mm
+	 * 
+	 * if askForTimezone is true then prompts for the timezone to use e.g.
+	 * Europe/London and offers a default of the current TZ
+	 * 
+	 * The UI will use the current time / date as the default values
+	 * 
+	 * @param prompt
+	 * @param askForTimezone
+	 * @return
+	 * @throws IOException
+	 */
+	public static LocalDateTime getISOLocalDateTime(String prompt) throws IOException {
+		return getISOZonedDateTime(prompt, false, false, false, LocalDateTime.MIN, LocalDateTime.MAX).toLocalDateTime();
+		// return getISODateTimeTimeZone(prompt, askForTimezone, true, true);
+	}
+
+	/**
+	 * Asks the user to enter a data and time (in whatever TZ) and returns a string
+	 * in the format YYYY-MM-DDTHH:mm:SS
 	 * 
 	 * If you are using a timezone then the time entered should be in the local time
 	 * for that timezone, not that for some name based timezones e.g. Europe/Paris
@@ -1751,33 +1783,123 @@ public class TextIOUtils {
 	 */
 	public static String getISODateTimeTimeZone(String prompt, boolean askForTimezone, boolean askForTimezoneName,
 			boolean defaultToCurrentTimezone) throws IOException {
-		String date = getISODate(prompt);
-		String time = getISOTime(prompt);
-		String dtg = date + "T" + time;
-		if (askForTimezone) {
-			if (askForTimezoneName) {
-				ZoneId zoneId = getTimeZoneByName(prompt, defaultToCurrentTimezone);
-				LocalDateTime ldt = LocalDateTime.parse(dtg);
-				ZonedDateTime zdt = ZonedDateTime.of(ldt, zoneId);
-				dtg = zdt.format(DateTimeFormatter.ISO_DATE_TIME);
-			} else {
-				String tz = getISOTimeZoneOffset(prompt, defaultToCurrentTimezone);
-				dtg = dtg + tz;
-			}
-		}
-		return dtg;
+		return getISODateTimeTimeZone(prompt, askForTimezone, askForTimezoneName, defaultToCurrentTimezone,
+				LocalDateTime.MIN, LocalDateTime.MAX);
 	}
 
 	/**
-	 * ask for the date / time with a timezone requested by name and offering a
-	 * default of the current TZ
+	 * Asks the user to enter a data and time (in whatever TZ) and returns a string
+	 * in the format YYYY-MM-DDTHH:mm:SS
+	 * 
+	 * If you are using a timezone then the time entered should be in the local time
+	 * for that timezone, not that for some name based timezones e.g. Europe/Paris
+	 * then this also allows for summer time / winter time adjustments (not all TZ
+	 * support daylight savings, for example the ones starting with GMT)
+	 * 
+	 * So for example entering 2023-01-01 12:00:00 with timezone Europe/London
+	 * returns an ISO formatted string with no offset, however 2023-06-01 12:00:00
+	 * with a TRZ fo Europe/London would return a formatted string with an offset of
+	 * +01:00 as that time is a summer time and so one hour ahead
+	 * 
+	 * if askForTimezone is true then prompt for the timezone
+	 * 
+	 * if askForTimezoneName is true prompts for a timezone by name, e.g.
+	 * Europe/London
+	 * 
+	 * if askForTimezoneName is false then ask an offset from GMT in terms of hours
+	 * an mins, the resulting string will be YYYY-MM-DDTHH:mmZ01:00 (in the case of
+	 * british summer time which is 1 hours ahead of GMT, or YYYY-MM-DDTHH:mmZ04:30)
+	 * for India which is 4 1/2 hours ahead.
+	 * 
+	 * if defaulToCurrentTimezone is true then will prompt for the timezone based on
+	 * the current timezone name / offset
+	 * 
+	 * The UI will use the current time / date as the default values
+	 * 
+	 * If defaultToCurrentOffsett is true then the current offser in hours and mins
+	 * will be offered as the TZ offset hours and mins
 	 * 
 	 * @param prompt
+	 * @param askForTimezone
+	 * @param askForTimezoneName
+	 * @param defaultToCurrentTimezone
 	 * @return
 	 * @throws IOException
 	 */
-	public static String getISODateTimeTimeZone(String prompt) throws IOException {
-		return getISODateTimeTimeZone(prompt, true, true, true);
+	public static String getISODateTimeTimeZone(String prompt, boolean askForTimezone, boolean askForTimezoneName,
+			boolean defaultToCurrentTimezone, LocalDateTime mindtg, LocalDateTime maxdtg) throws IOException {
+		return getISOZonedDateTime(prompt, askForTimezone, askForTimezoneName, defaultToCurrentTimezone, mindtg, maxdtg)
+				.format(DateTimeFormatter.ISO_DATE_TIME);
+	}
+
+	/**
+	 * Asks the user to enter a data and time (in the local or whatever TZ they
+	 * enter) in the format YYYY-MM-DDTHH:mm:SS
+	 * 
+	 * If you are asking for a timezone then the time entered should be in the local
+	 * time for that timezone, not that for some name based timezones e.g.
+	 * Europe/Paris then this also allows for summer time / winter time adjustments
+	 * (not all TZ support daylight savings, for example the ones starting with GMT)
+	 * 
+	 * So for example entering 2023-01-01 12:00:00 with timezone Europe/London
+	 * returns an ISO formatted string with no offset, however 2023-06-01 12:00:00
+	 * with a TRZ fo Europe/London would return a formatted string with an offset of
+	 * +01:00 as that time is a summer time and so one hour ahead
+	 * 
+	 * if askForTimezone is true then prompt for the timezone
+	 * 
+	 * if askForTimezone is false then the current (i.e. system local) TZ is used.
+	 * 
+	 * if askForTimezoneName is true prompts for a timezone by name, e.g.
+	 * Europe/London
+	 * 
+	 * if askForTimezoneName is false then ask an offset from GMT in terms of hours
+	 * an mins, the resulting string will be YYYY-MM-DDTHH:mmZ01:00 (in the case of
+	 * british summer time which is 1 hours ahead of GMT, or YYYY-MM-DDTHH:mmZ04:30)
+	 * for India which is 4 1/2 hours ahead.
+	 * 
+	 * if defaulToCurrentTimezone is true then will prompt for the timezone based on
+	 * the current timezone name / offset
+	 * 
+	 * The UI will use the current time / date as the default values
+	 * 
+	 * If defaultToCurrentOffsett is true then the current offser in hours and mins
+	 * will be offered as the TZ offset hours and mins
+	 * 
+	 * @param prompt
+	 * @param askForTimezone
+	 * @param askForTimezoneName
+	 * @param defaultToCurrentTimezone
+	 * @return
+	 * @throws IOException
+	 */
+	public static ZonedDateTime getISOZonedDateTime(String prompt, boolean askForTimezone, boolean askForTimezoneName,
+			boolean defaultToCurrentTimezone, LocalDateTime mindtg, LocalDateTime maxdtg) throws IOException {
+		if (mindtg.isAfter(maxdtg)) {
+			throw new IOException("Zoned DTG mindtg " + mindtg.format(DateTimeFormatter.ISO_DATE_TIME)
+					+ " cannot be before maxdtg " + maxdtg.format(DateTimeFormatter.ISO_DATE_TIME));
+		}
+		LocalDate date = getISOLocalDate(prompt, mindtg.toLocalDate(), maxdtg.toLocalDate());
+		// if the date chosen was the min date, then need to limit the time to the min
+		// dtg element, otherwise it can be midnight for the min
+		LocalTime minTime = mindtg.toLocalDate().isEqual(date) ? mindtg.toLocalTime() : LocalTime.MIN;
+		// likewise if the data chosen was the max date then limit toe max time to
+		// whaetever is in it
+		LocalTime maxTime = maxdtg.toLocalDate().isEqual(date) ? maxdtg.toLocalTime() : LocalTime.MAX;
+		LocalTime time = getISOLocalTime(prompt, minTime, maxTime);
+		LocalDateTime dtg = LocalDateTime.of(date, time);
+		if (askForTimezone) {
+			if (askForTimezoneName) {
+				ZoneId zoneId = getTimeZoneByName(prompt, defaultToCurrentTimezone);
+				ZonedDateTime zdt = ZonedDateTime.of(dtg, zoneId);
+				return zdt;
+			} else {
+				ZoneOffset tz = getISOOffsetTimeZoneOffset(prompt, defaultToCurrentTimezone);
+				ZonedDateTime zdt = ZonedDateTime.of(dtg, tz.normalized());
+				return zdt;
+			}
+		}
+		return ZonedDateTime.of(dtg, ZoneId.systemDefault());
 	}
 
 	/**
@@ -1788,13 +1910,36 @@ public class TextIOUtils {
 	 * @throws IOException
 	 */
 	public static String getISODateTimeTimeZone(String prompt, ZoneId zoneId) throws IOException {
+		return getISODateTimeTimeZone(prompt, zoneId, LocalDateTime.MIN, LocalDateTime.MAX);
+	}
+
+	/**
+	 * 
+	 * @param prompt
+	 * @param zoneId
+	 * @return
+	 * @throws IOException
+	 */
+	public static String getISODateTimeTimeZone(String prompt, ZoneId zoneId, LocalDateTime mindtg,
+			LocalDateTime maxdtg) throws IOException {
+		return getISOZonedDateTimeTimeZone(prompt, zoneId, mindtg, maxdtg).format(DateTimeFormatter.ISO_DATE_TIME);
+	}
+
+	/**
+	 * 
+	 * @param prompt
+	 * @param zoneId
+	 * @return
+	 * @throws IOException
+	 */
+	public static ZonedDateTime getISOZonedDateTimeTimeZone(String prompt, ZoneId zoneId, LocalDateTime mindtg,
+			LocalDateTime maxdtg) throws IOException {
 		String zoneInfo = " (in timezone " + zoneId.getId() + ")";
-		String date = getISODate(prompt + zoneInfo);
-		String time = getISOTime(prompt + zoneInfo);
-		String dtg = date + "T" + time;
-		LocalDateTime ldt = LocalDateTime.parse(dtg);
+		LocalDate date = getISOLocalDate(prompt + zoneInfo, mindtg.toLocalDate(), maxdtg.toLocalDate());
+		LocalTime time = getISOLocalTime(prompt + zoneInfo, mindtg.toLocalTime(), maxdtg.toLocalTime());
+		LocalDateTime ldt = LocalDateTime.of(date, time);
 		ZonedDateTime zdt = ZonedDateTime.of(ldt, zoneId);
-		return zdt.format(DateTimeFormatter.ISO_DATE_TIME);
+		return zdt;
 	}
 
 	/**
@@ -1815,7 +1960,7 @@ public class TextIOUtils {
 	}
 
 	/**
-	 * prompts for an offset from GMP in terms of hours an mins, the resulting
+	 * prompts for an offset from GMT in terms of hours an mins, the resulting
 	 * string will be 01:00 (in the case of british summer time which is 1 hours
 	 * ahead of GMT, or 04:30) for India which is 4 1/2 hours ahead.
 	 * 
@@ -1831,16 +1976,41 @@ public class TextIOUtils {
 	 * @throws IOException
 	 */
 	public static String getISOTimeZoneOffset(String prompt, boolean defaulToCurrentOffset) throws IOException {
+		return getISOOffsetTimeZoneOffset(prompt, defaulToCurrentOffset).getId();
+	}
 
+	/**
+	 * prompts for an offset from GMT in terms of hours an mins, the resulting
+	 * string will be 01:00 (in the case of british summer time which is 1 hours
+	 * ahead of GMT, or 04:30) for India which is 4 1/2 hours ahead.
+	 * 
+	 * The UI will use gmt as the default values
+	 * 
+	 * If defaultToCurrentOffsett is true then the current offset in hours and mins
+	 * will be offered as the TZ offset hours and mins
+	 * 
+	 * @param prompt
+	 * @param askForTimezone
+	 * @param defaulToCurrentOffset
+	 * @return
+	 * @throws IOException
+	 */
+	public static ZoneOffset getISOOffsetTimeZoneOffset(String prompt, boolean defaulToCurrentOffset)
+			throws IOException {
 		int offset = defaulToCurrentOffset ? ZonedDateTime.now().getOffset().getTotalSeconds() : 0;
 		int hoursOffsetDefault = offset / 3600;
 		int minsOffsetDefault = (offset % 3600) / 60;
 		int hoursOffset = getInt("Please enter time zone offset hours from GMT for " + prompt, NUM_TYPE.RANGE, -12, 12,
 				hoursOffsetDefault);
-		int minsOffset = getInt("Please enter time zone offset mins from GMT for " + prompt, NUM_TYPE.RANGE, 0, 59,
-				minsOffsetDefault);
-		String resp = hoursOffset < 0 ? "-" : "+";
-		return resp + toTwoDigit(hoursOffset) + ":" + toTwoDigit(minsOffset);
+		int minsOffset;
+		if (hoursOffset < 0) {
+			minsOffset = getInt("Please enter time zone offset mins from GMT for " + prompt, NUM_TYPE.RANGE, -59, 0,
+					minsOffsetDefault);
+		} else {
+			minsOffset = getInt("Please enter time zone offset mins from GMT for " + prompt, NUM_TYPE.RANGE, 0, 59,
+					minsOffsetDefault);
+		}
+		return ZoneOffset.ofHoursMinutes(hoursOffset, minsOffset);
 	}
 
 	/**
@@ -1877,6 +2047,10 @@ public class TextIOUtils {
 	private static Map<String, Set<String>> tzRegions;
 	private static Set<String> tzTopLevel;
 	private final static String TZ_SEPARATOR = "/";
+
+	public static String getTimeZoneNameByName(String prompt, boolean defaulToCurrentTimeZone) throws IOException {
+		return getTimeZoneByName(prompt, defaulToCurrentTimeZone).toString();
+	}
 
 	public static ZoneId getTimeZoneByName(String prompt, boolean defaulToCurrentTimeZone) throws IOException {
 		setupTZDataStructures();
@@ -1973,15 +2147,106 @@ public class TextIOUtils {
 	 * @throws IOException
 	 */
 	public static String getISOTime(String prompt) throws IOException {
-		LocalTime lt = LocalTime.now();
-		int hour = getInt("Please enter hours for " + prompt, NUM_TYPE.RANGE, 0, 23, lt.getHour());
-		int mins = getInt("Please enter mins for " + prompt, NUM_TYPE.RANGE, 0, 60, lt.getMinute());
-		int secs = getInt("Please enter secs for " + prompt, NUM_TYPE.RANGE, 0, 60, lt.getSecond());
-		return "" + toTwoDigit(hour) + ":" + toTwoDigit(mins) + ":" + toTwoDigit(secs);
+		return getISOTime(prompt, LocalTime.MIN, LocalTime.MAX);
 	}
 
 	/**
-	 * Prompts the user to enter a date, the current local date is used as the
+	 * Prompts the user to enter a time in 24 hours format, the current local time
+	 * is used as the default
+	 * 
+	 * The return string is of the format HH:MM:SS
+	 * 
+	 * @param prompt
+	 * @return
+	 * @throws IOException
+	 */
+	public static String getISOTime(String prompt, LocalTime mintime, LocalTime maxtime) throws IOException {
+		return getISOLocalTime(prompt, mintime, maxtime).format(DateTimeFormatter.ISO_LOCAL_TIME);
+	}
+
+	/**
+	 * Prompts the user to enter a time in 24 hours format, the current local time
+	 * is used as the default.
+	 * 
+	 * The return string is of the format HH:MM:SS
+	 * 
+	 * @param prompt
+	 * @return
+	 * @throws IOException
+	 */
+	public static LocalTime getISOLocalTime(String prompt) throws IOException {
+		return getISOLocalTime(prompt, LocalTime.MIN, LocalTime.MAX);
+	}
+
+	/**
+	 * Prompts the user to enter a time in 24 hours format, the current local time
+	 * is used as the default the time must be within the mintime and max time
+	 * 
+	 * The return string is of the format HH:MM:SS
+	 * 
+	 * @param prompt
+	 * @return
+	 * @throws IOException
+	 */
+	public static LocalTime getISOLocalTime(String prompt, LocalTime mintime, LocalTime maxtime) throws IOException {
+		if (mintime.isAfter(maxtime)) {
+			throw new IOException("Mintime " + mintime.format(DateTimeFormatter.ISO_TIME) + " can't be after maxtime "
+					+ maxtime.format(DateTimeFormatter.ISO_TIME));
+		}
+		int minhour = mintime.getHour();
+		int maxhour = maxtime.getHour();
+		int defaulthour = LocalTime.now().getHour();
+		if (defaulthour < minhour) {
+			defaulthour = minhour;
+		}
+		if (defaulthour > maxhour) {
+			defaulthour = maxhour;
+		}
+		int hour = getInt("Please enter hours for " + prompt, NUM_TYPE.RANGE, minhour, maxhour, defaulthour);
+
+		int minmin = mintime.getHour() == hour ? mintime.getMinute() : 0;
+		int maxmin = maxtime.getHour() == hour ? maxtime.getMinute() : 59;
+		int defaultmin = LocalTime.now().getMinute();
+		if (defaultmin < minmin) {
+			defaultmin = minmin;
+		}
+		if (defaultmin > maxmin) {
+			defaultmin = maxmin;
+		}
+		int mins = getInt("Please enter mins for " + prompt, NUM_TYPE.RANGE, minmin, maxmin, defaultmin);
+
+		int minsec = ((mintime.getHour() == hour) && (mintime.getMinute() == mins)) ? mintime.getSecond() : 0;
+		int maxsec = ((maxtime.getHour() == hour) && (maxtime.getMinute() == mins)) ? maxtime.getSecond() : 59;
+		int defaultsec = LocalTime.now().getSecond();
+		if (defaultsec < minsec) {
+			defaultsec = minsec;
+		}
+		if (defaultsec > maxsec) {
+			defaultsec = maxsec;
+		}
+		int secs = getInt("Please enter secs for " + prompt, NUM_TYPE.RANGE, minsec, maxsec, defaultsec);
+		return LocalTime.of(hour, mins, secs);
+	}
+
+	/**
+	 * Prompts the user to enter a date with any allowed date, the current local
+	 * date is used as the default.
+	 * 
+	 * The day of the month will be restricted to the actual number of days in that
+	 * month in that year (so for Feb 28 normally, but 28 in leap years
+	 * 
+	 * The return string is of the format YYYY-MM-DD
+	 * 
+	 * @param prompt
+	 * @return
+	 * @throws IOException
+	 */
+	public static String getISODate(String prompt) throws IOException {
+		return getISODate(prompt, LocalDate.MIN, LocalDate.MAX);
+	}
+
+	/**
+	 * Prompts the user to enter a date, which the current local date is used as the
 	 * default.
 	 * 
 	 * The day of the month will be restricted to the actual number of days in that
@@ -1993,21 +2258,86 @@ public class TextIOUtils {
 	 * @return
 	 * @throws IOException
 	 */
-	public static String getISODate(String prompt) throws IOException {
+	public static String getISODate(String prompt, LocalDate mindate, LocalDate maxdate) throws IOException {
+		return getISOLocalDate(prompt, mindate, maxdate).format(DateTimeFormatter.ISO_DATE);
+	}
+
+	/**
+	 * Prompts the user to enter a date , which the current local date is used as
+	 * the default.
+	 * 
+	 * The day of the month will be restricted to the actual number of days in that
+	 * month in that year (so for Seb 28 normally, but 28 in leap years
+	 * 
+	 * The return string is of the format YYYY-MM-DD
+	 * 
+	 * @param prompt
+	 * @return
+	 * @throws IOException
+	 */
+	public static LocalDate getISOLocalDate(String prompt) throws IOException {
+		return getISOLocalDate(prompt, LocalDate.MIN, LocalDate.MAX);
+	}
+
+	/**
+	 * Prompts the user to enter a date , which the current local date is used as
+	 * the default.
+	 * 
+	 * The day of the month will be restricted to the actual number of days in that
+	 * month in that year (so for Seb 28 normally, but 28 in leap years
+	 * 
+	 * The return string is of the format YYYY-MM-DD
+	 * 
+	 * @param prompt
+	 * @return
+	 * @throws IOException
+	 */
+	public static LocalDate getISOLocalDate(String prompt, LocalDate mindate, LocalDate maxdate) throws IOException {
+		if (maxdate.isBefore(mindate)) {
+			throw new IOException("Provided maximum date " + maxdate.format(DateTimeFormatter.ISO_DATE)
+					+ " is before the minimum date " + mindate.format(DateTimeFormatter.ISO_DATE));
+		}
 		LocalDate ld = LocalDate.now();
-		int year = getInt("Please enter year for " + prompt, NUM_TYPE.RANGE, ld.getYear(), ld.getYear() + 10,
+		if (ld.isBefore(mindate)) {
+			ld = mindate;
+		}
+		if (ld.isAfter(maxdate)) {
+			ld = maxdate;
+		}
+		int year = getInt("Please enter year for " + prompt, NUM_TYPE.RANGE, mindate.getYear(), maxdate.getYear(),
 				ld.getYear());
-		int month = getInt("Please enter month in " + year + " for " + prompt, NUM_TYPE.RANGE, 1, 12,
-				ld.getMonthValue());
+		// given the year what are the options for months - it might be we have a
+		// restricted number if the year is at the begining or end of the range
+		int minmonth = mindate.getYear() == year ? mindate.getMonthValue() : 1;
+		int maxmonth = maxdate.getYear() == year ? maxdate.getMonthValue() : 12;
+		int defaultmonth = ld.getMonthValue();
+		if (defaultmonth < minmonth) {
+			defaultmonth = minmonth;
+		}
+		if (defaultmonth > maxmonth) {
+			defaultmonth = maxmonth;
+		}
+		int month = getInt("Please enter month in " + year + " for " + prompt, NUM_TYPE.RANGE, minmonth, maxmonth,
+				defaultmonth);
+
+		// work out the day of the month, whihs can vary betwene 28 & 31 depending on
+		// the month (and possibly leap year) and also
+		// need to be bounded by the min / max numbers
+		LocalDate selectedMonthFirstDay = ld.withDayOfMonth(1).withYear(year).withMonth(month);
+		int maxDayOfSelectedMonth = selectedMonthFirstDay.lengthOfMonth();
+		int minday = ((mindate.getYear() == year) && (mindate.getMonthValue() == month)) ? mindate.getDayOfMonth() : 1;
+		int maxday = ((maxdate.getYear() == year) && (maxdate.getMonthValue() == month)) ? maxdate.getDayOfMonth()
+				: maxDayOfSelectedMonth;
 		int currentDayOfMonth = ld.getDayOfMonth();
-		LocalDate selectedMonth = ld.withDayOfMonth(1).withYear(year).withMonth(month);
-		int maxDayOfSelectedMonth = selectedMonth.lengthOfMonth();
-		if (currentDayOfMonth > maxDayOfSelectedMonth) {
-			currentDayOfMonth = maxDayOfSelectedMonth;
+		if (currentDayOfMonth < minday) {
+			currentDayOfMonth = minday;
+		}
+		if (currentDayOfMonth > maxday) {
+			currentDayOfMonth = maxday;
 		}
 		int day = getInt("Please enter day within " + year + " and month " + month + " for " + prompt, NUM_TYPE.RANGE,
-				1, maxDayOfSelectedMonth, currentDayOfMonth);
-		return "" + year + "-" + toTwoDigit(month) + "-" + toTwoDigit(day);
+				minday, maxday, currentDayOfMonth);
+		return LocalDate.of(year, month, day);
 	}
 
 	private static String toTwoDigit(int number) {
@@ -2016,6 +2346,28 @@ public class TextIOUtils {
 		} else if (number < 0) {
 			return "-0" + (number * -1);
 		} else if (number < 10) {
+			return "0" + number;
+		} else {
+			return "" + number;
+		}
+	}
+
+	private static String toFourDigit(int number) {
+		if (number <= -1000) {
+			return "" + number;
+		} else if (number <= -100) {
+			return "-0" + (number * -1);
+		} else if (number <= -10) {
+			return "-00" + (number * -1);
+		} else if (number < 0) {
+			return "-000" + (number * -1);
+		} else if (number == 0) {
+			return "0000";
+		} else if (number < 10) {
+			return "000" + number;
+		} else if (number < 100) {
+			return "00" + number;
+		} else if (number < 1000) {
 			return "0" + number;
 		} else {
 			return "" + number;
