@@ -1935,8 +1935,18 @@ public class TextIOUtils {
 	public static ZonedDateTime getISOZonedDateTimeTimeZone(String prompt, ZoneId zoneId, LocalDateTime mindtg,
 			LocalDateTime maxdtg) throws IOException {
 		String zoneInfo = " (in timezone " + zoneId.getId() + ")";
-		LocalDate date = getISOLocalDate(prompt + zoneInfo, mindtg.toLocalDate(), maxdtg.toLocalDate());
-		LocalTime time = getISOLocalTime(prompt + zoneInfo, mindtg.toLocalTime(), maxdtg.toLocalTime());
+		LocalDate mindate = mindtg.toLocalDate();
+		LocalDate maxdate = maxdtg.toLocalDate();
+		LocalDate date = getISOLocalDate(prompt + zoneInfo, mindate, maxdate);
+		// if the date is the first date then the min time is that within the day, if
+		// however the selected date is before the minimum date then the minimum date
+		// time is the begining of the day
+		LocalTime minTime = mindate.isEqual(date) ? mindtg.toLocalTime() : LocalTime.MIN;
+		// if the date is the last date then the max time is that within the day, if
+		// however the selected date is before the maximum date then the maximum date
+		// time is the end of the day
+		LocalTime maxTime = maxdate.isEqual(date) ? maxdtg.toLocalTime() : LocalTime.MAX;
+		LocalTime time = getISOLocalTime(prompt + zoneInfo, minTime, maxTime);
 		LocalDateTime ldt = LocalDateTime.of(date, time);
 		ZonedDateTime zdt = ZonedDateTime.of(ldt, zoneId);
 		return zdt;
