@@ -182,7 +182,7 @@ public class ChoiceDescriptionData<P> implements Cloneable {
 	 */
 	public void addChoiceDescription(ChoiceDescription<P> cd) {
 		if (processed) {
-			throw new IllegalStateException("Can't add choices once this has been used");
+			throw new IllegalStateException("Can't add choices once this has been locked");
 		}
 		choiceDescriptions.add(cd);
 	}
@@ -195,7 +195,7 @@ public class ChoiceDescriptionData<P> implements Cloneable {
 	 */
 	public void addChoiceDescription(List<ChoiceDescription<P>> cds) {
 		if (processed) {
-			throw new IllegalStateException("Can't add choices once this has been processed");
+			throw new IllegalStateException("Can't add choices once this has been locked");
 		}
 		choiceDescriptions.addAll(cds);
 	}
@@ -223,7 +223,7 @@ public class ChoiceDescriptionData<P> implements Cloneable {
 	 */
 	public boolean removeChoice(int i) {
 		if (processed) {
-			throw new IllegalStateException("Can't remove choices once this has been processed");
+			throw new IllegalStateException("Can't remove choices once this has been locked");
 		}
 		if (i < 0) {
 			return false;
@@ -308,6 +308,12 @@ public class ChoiceDescriptionData<P> implements Cloneable {
 			process();
 		}
 		return choiceDescriptions.get(i).getParam();
+	}
+
+	public void completeAndLock() {
+		if (!processed) {
+			process();
+		}
 	}
 
 	private void process() {
@@ -460,6 +466,9 @@ public class ChoiceDescriptionData<P> implements Cloneable {
 	 * structure, so you can't add additional entries.
 	 */
 	public void addAbandonOption(String abandonText, boolean addFirst, boolean abandonIsDefault) {
+		if (processed) {
+			throw new IllegalStateException("Can't add choices once this has been locked");
+		}
 		// only allow one abandon option to be added
 		if (abandonAdded) {
 			return;

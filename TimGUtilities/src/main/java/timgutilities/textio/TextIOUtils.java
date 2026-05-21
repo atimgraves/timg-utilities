@@ -40,6 +40,10 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.file.DirectoryIteratorException;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -49,14 +53,19 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedSet;
 import java.util.TimeZone;
 import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import timgutilities.textio.DirectoryEntry.Type;
 
 /**
  * This class represents a bunch of utility functions that over the years I have
@@ -1553,7 +1562,7 @@ public class TextIOUtils {
 	 * @throws IOException
 	 */
 	public static String getFileUnder(String prompt, String startLocation) throws IOException {
-		return getFileUnder(prompt, null, null);
+		return getFileUnder(prompt, startLocation, null);
 	}
 
 	/**
@@ -1674,6 +1683,872 @@ public class TextIOUtils {
 			}
 			return name;
 		}
+	}
+
+	/**
+	 * Locates all entries in the specified directory strict alpha order with
+	 * directories first, excluding hidden files
+	 * 
+	 * @param dir
+	 * @return
+	 */
+	public static List<String> listDirectoryNames(String dir) {
+		return listDirectoryNames(dir, true);
+	}
+
+	/**
+	 * Locates all entries in the specified directory strict alpha order with
+	 * directories first
+	 * 
+	 * @param dir
+	 * @return
+	 */
+	public static List<String> listDirectoryNames(String dir, boolean excludeHiddenFiles) {
+		return listDirectoryNames(Path.of(dir), excludeHiddenFiles);
+	}
+
+	/**
+	 * Locates all entries in the specified directory strict alpha order with
+	 * directories first
+	 * 
+	 * @param dir
+	 * @return
+	 */
+	public static List<String> listDirectoryNames(Path dir) {
+		return listDirectoryNames(dir, true);
+	}
+
+	/**
+	 * Locates all entries in the specified directory strict alpha order with
+	 * directories first
+	 * 
+	 * @param dir
+	 * @return
+	 */
+	public static List<String> listDirectoryNames(Path dir, boolean excludeHiddenFiles) {
+		return listDirectoryNames(dir, DirectoryListFilterType.DIRECTORY_AND_FILE,
+				DirectoryListOrderType.DIRECTORIES_FIRST, excludeHiddenFiles);
+	}
+
+	/**
+	 * Locates specified (dir or file or both) entries in the specified directory
+	 * strict alpha order with directories first if they are in the output
+	 * 
+	 * @param dir
+	 * @param listFilterType
+	 * @return the names only
+	 */
+	public static List<String> listDirectoryNames(String dir, DirectoryListFilterType listFilterType) {
+		return listDirectoryNames(dir, listFilterType, true);
+	}
+
+	/**
+	 * Locates specified (dir or file or both) entries in the specified directory
+	 * strict alpha order with directories first if they are in the output
+	 * 
+	 * @param dir
+	 * @param listFilterType
+	 * @return the names only
+	 */
+	public static List<String> listDirectoryNames(String dir, DirectoryListFilterType listFilterType,
+			boolean excludeHiddenFiles) {
+		return listDirectoryNames(Path.of(dir), listFilterType, excludeHiddenFiles);
+	}
+
+	/**
+	 * Locates specified (dir or file or both) entries in the specified directory
+	 * strict alpha order with directories first if they are in the output
+	 * 
+	 * @param dir
+	 * @param listFilterType
+	 * @return the names only
+	 */
+	public static List<String> listDirectoryNames(Path dir, DirectoryListFilterType listFilterType) {
+		return listDirectoryNames(dir, listFilterType, true);
+	}
+
+	/**
+	 * Locates specified (dir or file or both) entries in the specified directory
+	 * strict alpha order with directories first if they are in the output
+	 * 
+	 * @param dir
+	 * @param listFilterType
+	 * @return the names only
+	 */
+	public static List<String> listDirectoryNames(Path dir, DirectoryListFilterType listFilterType,
+			boolean excludeHiddenFiles) {
+		return listDirectoryNames(dir, listFilterType, DirectoryListOrderType.DIRECTORIES_FIRST, excludeHiddenFiles);
+	}
+
+	/**
+	 * Locates all entries in the specified directory in output in either dir first,
+	 * file first or mixed, returned in strict alpha order by grouping
+	 * 
+	 * @param dir
+	 * @param listOrderType
+	 * @return the names only
+	 */
+	public static List<String> listDirectoryNames(String dir, DirectoryListOrderType listOrderType) {
+		return listDirectoryNames(dir, listOrderType, true);
+	}
+
+	/**
+	 * Locates all entries in the specified directory in output in either dir first,
+	 * file first or mixed, returned in strict alpha order by grouping
+	 * 
+	 * @param dir
+	 * @param listOrderType
+	 * @return the names only
+	 */
+	public static List<String> listDirectoryNames(String dir, DirectoryListOrderType listOrderType,
+			boolean excludeHiddenFiles) {
+		return listDirectoryNames(Path.of(dir), listOrderType, excludeHiddenFiles);
+	}
+
+	/**
+	 * Locates all entries in the specified directory in output in either dir first,
+	 * file first or mixed, returned in strict alpha order by grouping
+	 * 
+	 * @param dir
+	 * @param listOrderType
+	 * @return the names only
+	 */
+	public static List<String> listDirectoryNames(Path dir, DirectoryListOrderType listOrderType) {
+		return listDirectoryNames(dir, listOrderType, true);
+	}
+
+	/**
+	 * Locates all entries in the specified directory in output in either dir first,
+	 * file first or mixed, returned in strict alpha order by grouping
+	 * 
+	 * @param dir
+	 * @param listOrderType
+	 * @return the names only
+	 */
+	public static List<String> listDirectoryNames(Path dir, DirectoryListOrderType listOrderType,
+			boolean excludeHiddenFiles) {
+		return listDirectoryNames(dir, DirectoryListFilterType.DIRECTORY_AND_FILE, listOrderType, excludeHiddenFiles);
+	}
+
+	/**
+	 * Locates the specified entries (dir, file, both) in the specified directory,
+	 * returning in strict alpha order with the specified grouping (dir / file first
+	 * or mixed)
+	 * 
+	 * @param dir
+	 * @param listFilterType
+	 * @param listOrderType
+	 * @return the names only
+	 */
+	public static List<String> listDirectoryNames(String dir, DirectoryListFilterType listFilterType,
+			DirectoryListOrderType listOrderType) {
+		return listDirectoryNames(dir, listFilterType, listOrderType, true);
+	}
+
+	/**
+	 * Locates the specified entries (dir, file, both) in the specified directory,
+	 * returning in strict alpha order with the specified grouping (dir / file first
+	 * or mixed)
+	 * 
+	 * @param dir
+	 * @param listFilterType
+	 * @param listOrderType
+	 * @return the names only
+	 */
+	public static List<String> listDirectoryNames(String dir, DirectoryListFilterType listFilterType,
+			DirectoryListOrderType listOrderType, boolean excludeHiddenFiles) {
+		return listDirectoryNames(Path.of(dir), listFilterType, listOrderType, excludeHiddenFiles);
+	}
+
+	/**
+	 * Locates the specified entries (dir, file, both) in the specified directory,
+	 * returning in strict alpha order with the specified grouping (dir / file first
+	 * or mixed)
+	 * 
+	 * @param dir
+	 * @param listFilterType
+	 * @param listOrderType
+	 * @return the names only
+	 */
+	public static List<String> listDirectoryNames(Path dir, DirectoryListFilterType listFilterType,
+			DirectoryListOrderType listOrderType) {
+		return listDirectoryNames(dir, listFilterType, listOrderType, true);
+	}
+
+	/**
+	 * Locates the specified entries (dir, file, both) in the specified directory,
+	 * returning in strict alpha order with the specified grouping (dir / file first
+	 * or mixed)
+	 * 
+	 * @param dir
+	 * @param listFilterType
+	 * @param listOrderType
+	 * @return the names only
+	 */
+	public static List<String> listDirectoryNames(Path dir, DirectoryListFilterType listFilterType,
+			DirectoryListOrderType listOrderType, boolean excludeHiddenFiles) {
+		return listDirectoryEntriesAsString(dir, listFilterType, listOrderType, excludeHiddenFiles, null, true, false);
+	}
+
+	/**
+	 * Locates all entries in the specified directory strict alpha order with
+	 * directories first. Hidden entries are excluded.
+	 * 
+	 * @param dir
+	 * @return
+	 */
+	public static List<String> listDirectoryNameTypes(String dir) {
+		return listDirectoryNameTypes(dir);
+	}
+
+	/**
+	 * Locates all entries in the specified directory strict alpha order with
+	 * directories first. Hidden entries (name starts with .) are excluded.
+	 * 
+	 * @param dir
+	 * @paran excludeHiddenFiles
+	 * @return
+	 */
+	public static List<String> listDirectoryNameTypes(String dir, boolean excludeHiddenFiles) {
+		return listDirectoryNameTypes(Path.of(dir), excludeHiddenFiles);
+	}
+
+	/**
+	 * Locates all entries in the specified directory strict alpha order with
+	 * directories first. Hidden entries (name starts with .) are excluded.
+	 * 
+	 * @param dir
+	 * @return
+	 */
+	public static List<String> listDirectoryNameTypes(Path dir) {
+		return listDirectoryNameTypes(dir, true);
+	}
+
+	/**
+	 * Locates all entries in the specified directory strict alpha order with
+	 * directories first. Hidden entries (name starts with .) are excluded.
+	 * 
+	 * @param dir
+	 * @return
+	 */
+	public static List<String> listDirectoryNameTypes(Path dir, boolean excludeHiddenFiles) {
+		return listDirectoryNameTypes(dir, DirectoryListFilterType.DIRECTORY_AND_FILE,
+				DirectoryListOrderType.DIRECTORIES_FIRST, excludeHiddenFiles);
+	}
+
+	/**
+	 * Locates specified (dir or file or both) entries in the specified directory
+	 * strict alpha order with directories first if they are in the output. Hidden
+	 * entries (name starts with .) are excluded.
+	 * 
+	 * @param dir
+	 * @param listFilterType
+	 * @return the names only
+	 */
+	public static List<String> listDirectoryNameTypes(String dir, DirectoryListFilterType listFilterType) {
+		return listDirectoryNameTypes(dir, listFilterType, true);
+	}
+
+	/**
+	 * Locates specified (dir or file or both) entries in the specified directory
+	 * strict alpha order with directories first if they are in the output. Hidden
+	 * entries (name starts with .) are excluded.
+	 * 
+	 * @param dir
+	 * @param listFilterType
+	 * @return the names only
+	 */
+	public static List<String> listDirectoryNameTypes(String dir, DirectoryListFilterType listFilterType,
+			boolean excludeHiddenFiles) {
+		return listDirectoryNameTypes(Path.of(dir), listFilterType, excludeHiddenFiles);
+	}
+
+	/**
+	 * Locates specified (dir or file or both) entries in the specified directory
+	 * strict alpha order with directories first if they are in the output. Hidden
+	 * entries (name starts with .) are excluded.
+	 * 
+	 * @param dir
+	 * @param listFilterType
+	 * @return the names only
+	 */
+	public static List<String> listDirectoryNameTypes(Path dir, DirectoryListFilterType listFilterType) {
+		return listDirectoryNameTypes(dir, listFilterType, true);
+	}
+
+	/**
+	 * Locates specified (dir or file or both) entries in the specified directory
+	 * strict alpha order with directories first if they are in the output. Hidden
+	 * entries (name starts with .) are excluded.
+	 * 
+	 * @param dir
+	 * @param listFilterType
+	 * @return the names only
+	 */
+	public static List<String> listDirectoryNameTypes(Path dir, DirectoryListFilterType listFilterType,
+			boolean excludeHiddenFiles) {
+		return listDirectoryNameTypes(dir, listFilterType, DirectoryListOrderType.DIRECTORIES_FIRST,
+				excludeHiddenFiles);
+	}
+
+	/**
+	 * Locates all entries in the specified directory in output in either dir first,
+	 * file first or mixed, returned in strict alpha order by grouping. Hidden
+	 * entries (name starts with .) are excluded.
+	 * 
+	 * @param dir
+	 * @param listOrderType
+	 * @return the names only
+	 */
+	public static List<String> listDirectoryNameTypes(String dir, DirectoryListOrderType listOrderType) {
+		return listDirectoryNameTypes(dir, listOrderType, true);
+	}
+
+	/**
+	 * Locates all entries in the specified directory in output in either dir first,
+	 * file first or mixed, returned in strict alpha order by grouping. Hidden
+	 * entries (name starts with .) are excluded.
+	 * 
+	 * @param dir
+	 * @param listOrderType
+	 * @return the names only
+	 */
+	public static List<String> listDirectoryNameTypes(String dir, DirectoryListOrderType listOrderType,
+			boolean excludeHiddenFiles) {
+		return listDirectoryNameTypes(Path.of(dir), listOrderType, excludeHiddenFiles);
+	}
+
+	/**
+	 * Locates all entries in the specified directory in output in either dir first,
+	 * file first or mixed, returned in strict alpha order by grouping. Hidden
+	 * entries (name starts with .) are excluded.
+	 * 
+	 * @param dir
+	 * @param listOrderType
+	 * @return the names only
+	 */
+	public static List<String> listDirectoryNameTypes(Path dir, DirectoryListOrderType listOrderType) {
+		return listDirectoryNameTypes(dir, listOrderType, true);
+	}
+
+	/**
+	 * Locates all entries in the specified directory in output in either dir first,
+	 * file first or mixed, returned in strict alpha order by grouping. Hidden
+	 * entries (name starts with .) are excluded.
+	 * 
+	 * @param dir
+	 * @param listOrderType
+	 * @return the names only
+	 */
+	public static List<String> listDirectoryNameTypes(Path dir, DirectoryListOrderType listOrderType,
+			boolean excludeHiddenFiles) {
+		return listDirectoryNameTypes(dir, DirectoryListFilterType.DIRECTORY_AND_FILE, listOrderType,
+				excludeHiddenFiles);
+	}
+
+	/**
+	 * Locates the specified entries (dir, file, both) in the specified directory,
+	 * returning in strict alpha order with the specified grouping (dir / file first
+	 * or mixed). Hidden entries (name starts with .) are excluded.
+	 * 
+	 * @param dir
+	 * @param listFilterType
+	 * @param listOrderType
+	 * @return the names only
+	 */
+	public static List<String> listDirectoryNameTypes(String dir, DirectoryListFilterType listFilterType,
+			DirectoryListOrderType listOrderType) {
+		return listDirectoryNameTypes(dir, listFilterType, listOrderType, true);
+	}
+
+	/**
+	 * Locates the specified entries (dir, file, both) in the specified directory,
+	 * returning in strict alpha order with the specified grouping (dir / file first
+	 * or mixed). Hidden entries (name starts with .) are excluded.
+	 * 
+	 * @param dir
+	 * @param listFilterType
+	 * @param listOrderType
+	 * @return the names only
+	 */
+	public static List<String> listDirectoryNameTypes(String dir, DirectoryListFilterType listFilterType,
+			DirectoryListOrderType listOrderType, boolean excludeHiddenFiles) {
+		return listDirectoryNameTypes(Path.of(dir), listFilterType, listOrderType, excludeHiddenFiles);
+	}
+
+	/**
+	 * Locates the specified entries (dir, file, both) in the specified directory,
+	 * returning in strict alpha order with the specified grouping (dir / file first
+	 * or mixed). Hidden entries (name starts with .) are excluded.
+	 * 
+	 * @param dir
+	 * @param listFilterType
+	 * @param listOrderType
+	 * @return the names only
+	 */
+	public static List<String> listDirectoryNameTypes(Path dir, DirectoryListFilterType listFilterType,
+			DirectoryListOrderType listOrderType) {
+		return listDirectoryEntriesAsString(dir, listFilterType, listOrderType, true, null, true, true);
+	}
+
+	/**
+	 * Locates the specified entries (dir, file, both) in the specified directory,
+	 * returning in strict alpha order with the specified grouping (dir / file first
+	 * or mixed). Hidden entries (name starts with .) are excluded.
+	 * 
+	 * @param dir
+	 * @param listFilterType
+	 * @param listOrderType
+	 * @return the names only
+	 */
+	public static List<String> listDirectoryNameTypes(Path dir, DirectoryListFilterType listFilterType,
+			DirectoryListOrderType listOrderType, boolean excludeHiddenFile) {
+		return listDirectoryEntriesAsString(dir, listFilterType, listOrderType, excludeHiddenFile, null, true, true);
+	}
+
+	/**
+	 * From the given directory list the directory entries as strings subject to the
+	 * controls. Hidden entries (name starts with .) are excluded.
+	 * 
+	 * @param dir             directory to list
+	 * @param listFilterType  what entries to return (sub dirs, files or both)
+	 * @param listOrderType   how to order the result, directories first, files
+	 *                        first, or both (each segment is in alphabetical order)
+	 * @param regexp          if provided is used to only select matching entries,
+	 *                        for example files ending in .java
+	 * @param regexpFilesOnly does the regexp apply to both directories and files or
+	 *                        just files
+	 * @param nameAndType     if true then the name and type will be in the result
+	 *                        (e.g. tim.txt (File)), if fals only the name (e.g.
+	 *                        tim.txt)
+	 * @return the names only or names + type (see nameAndType flag)
+	 */
+	public static List<String> listDirectoryEntriesAsString(String dir, DirectoryListFilterType listFilterType,
+			DirectoryListOrderType listOrderType, String regexp, boolean regexpFilesOnly, boolean nameAndType) {
+		return listDirectoryEntriesAsString(Path.of(dir), listFilterType, listOrderType, true, regexp, regexpFilesOnly,
+				nameAndType);
+	}
+
+	/**
+	 * From the given directory list the directory entries as strings subject to the
+	 * controls. Hidden entries (name starts with .) are excluded.
+	 * 
+	 * @param dir             directory to list
+	 * @param listFilterType  what entries to return (sub dirs, files or both)
+	 * @param listOrderType   how to order the result, directories first, files
+	 *                        first, or both (each segment is in alphabetical order)
+	 * @param regexp          if provided is used to only select matching entries,
+	 *                        for example files ending in .java
+	 * @param regexpFilesOnly does the regexp apply to both directories and files or
+	 *                        just files
+	 * @param nameAndType     if true then the name and type will be in the result
+	 *                        (e.g. tim.txt (File)), if fals only the name (e.g.
+	 *                        tim.txt)
+	 * @return the names only or names + type (see nameAndType flag)
+	 */
+	public static List<String> listDirectoryEntriesAsString(Path dir, DirectoryListFilterType listFilterType,
+			DirectoryListOrderType listOrderType, String regexp, boolean regexpFilesOnly, boolean nameAndType) {
+		return listDirectoryEntriesAsString(dir, listFilterType, listOrderType, true, regexp, regexpFilesOnly,
+				nameAndType);
+	}
+
+	/**
+	 * From the given directory list the directory entries as strings subject to the
+	 * controls. Hidden entries (name starts with .) are excluded.
+	 * 
+	 * @param dir             directory to list
+	 * @param listFilterType  what entries to return (sub dirs, files or both)
+	 * @param listOrderType   how to order the result, directories first, files
+	 *                        first, or both (each segment is in alphabetical order)
+	 * @param regexp          if provided is used to only select matching entries,
+	 *                        for example files ending in .java
+	 * @param regexpFilesOnly does the regexp apply to both directories and files or
+	 *                        just files
+	 * @param nameAndType     if true then the name and type will be in the result
+	 *                        (e.g. tim.txt (File)), if fals only the name (e.g.
+	 *                        tim.txt)
+	 * @return the names only or names + type (see nameAndType flag)
+	 */
+	public static List<String> listDirectoryEntriesAsString(String dir, DirectoryListFilterType listFilterType,
+			DirectoryListOrderType listOrderType, boolean excludeHiddenFile, String regexp, boolean regexpFilesOnly,
+			boolean nameAndType) {
+
+		return listDirectoryEntriesAsString(Path.of(dir), listFilterType, listOrderType, excludeHiddenFile, regexp,
+				regexpFilesOnly, nameAndType);
+	}
+
+	/**
+	 * From the given directory list the directory entries as strings subject to the
+	 * controls. Hidden entries (name starts with .) are excluded.
+	 * 
+	 * @param dir             directory to list
+	 * @param listFilterType  what entries to return (sub dirs, files or both)
+	 * @param listOrderType   how to order the result, directories first, files
+	 *                        first, or both (each segment is in alphabetical order)
+	 * @param regexp          if provided is used to only select matching entries,
+	 *                        for example files ending in .java
+	 * @param regexpFilesOnly does the regexp apply to both directories and files or
+	 *                        just files
+	 * @param nameAndType     if true then the name and type will be in the result
+	 *                        (e.g. tim.txt (File)), if fals only the name (e.g.
+	 *                        tim.txt)
+	 * @return the names only or names + type (see nameAndType flag)
+	 */
+	public static List<String> listDirectoryEntriesAsString(Path dir, DirectoryListFilterType listFilterType,
+			DirectoryListOrderType listOrderType, boolean excludeHiddenFile, String regexp, boolean regexpFilesOnly,
+			boolean nameAndType) {
+		List<DirectoryEntry> entries = listDirectoryEntries(dir, listFilterType, listOrderType, excludeHiddenFile,
+				regexp, regexpFilesOnly);
+		return entries.stream().map(entry -> {
+			if (nameAndType) {
+				return entry.getNameType();
+			} else {
+				return entry.getName();
+			}
+		}).toList();
+	}
+
+	/**
+	 * From the given directory list the directory contents as directory entries
+	 * subject to the controls. Hidden entries (name starts with .) are excluded.
+	 * 
+	 * @param dir             directory to list
+	 * @param listFilterType  what entries to return (sub dirs, files or both)
+	 * @param listOrderType   how to order the result, directories first, files
+	 *                        first, or both (each segment is in alphabetical order)
+	 * @param regexp          if provided is used to only select matching entries,
+	 *                        for example files ending in .java
+	 * @param regexpFilesOnly does the regexp apply to both directories and files or
+	 *                        just files
+	 * @return
+	 */
+	public static List<DirectoryEntry> listDirectoryEntries(String dir, DirectoryListFilterType listFilterType,
+			DirectoryListOrderType listOrderType, String regexp, boolean regexpFilesOnly) {
+		return listDirectoryEntries(Path.of(dir), listFilterType, listOrderType, regexp, regexpFilesOnly);
+	}
+
+	/**
+	 * From the given directory list the directory contents as directory entries
+	 * subject to the controls. Hidden entries (name starts with .) are excluded.
+	 * 
+	 * @param dir             directory to list
+	 * @param listFilterType  what entries to return (sub dirs, files or both)
+	 * @param listOrderType   how to order the result, directories first, files
+	 *                        first, or both (each segment is in alphabetical order)
+	 * @param regexp          if provided is used to only select matching entries,
+	 *                        for example files ending in .java
+	 * @param regexpFilesOnly does the regexp apply to both directories and files or
+	 *                        just files
+	 * @return
+	 */
+	public static List<DirectoryEntry> listDirectoryEntries(Path dir, DirectoryListFilterType listFilterType,
+			DirectoryListOrderType listOrderType, String regexp, boolean regexpFilesOnly) {
+		return listDirectoryEntries(dir, listFilterType, listOrderType, true, regexp, regexpFilesOnly);
+	}
+
+	/**
+	 * From the given directory list the directory contents as directory entries
+	 * subject to the controls. Hidden entries (name starts with .) are excluded.
+	 * 
+	 * @param dir                directory to list
+	 * @param listFilterType     what entries to return (sub dirs, files or both)
+	 * @param listOrderType      how to order the result, directories first, files
+	 *                           first, or both (each segment is in alphabetical
+	 *                           order)
+	 * @param excludeHiddenFiles If true hidden entries (as per the underlying OS
+	 *                           conventions) are not included in the list
+	 * @param regexp             if provided is used to only select matching
+	 *                           entries, for example files ending in .java
+	 * @param regexpFilesOnly    does the regexp apply to both directories and files
+	 *                           or just files
+	 * @return
+	 */
+	public static List<DirectoryEntry> listDirectoryEntries(Path dir, DirectoryListFilterType listFilterType,
+			DirectoryListOrderType listOrderType, boolean excludeHiddenFiles, String regexp, boolean regexpFilesOnly) {
+		SortedSet<DirectoryEntry> fileEntries = new TreeSet<>();
+		SortedSet<DirectoryEntry> directoryEntries = new TreeSet<>();
+		Pattern regexpPattern = regexp != null ? Pattern.compile(regexp) : null;
+
+		try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir)) {
+			for (Path p : stream) {
+				String name = p.getFileName().toString();
+				if (excludeHiddenFiles && Files.isHidden(p)) {
+					// we're excluding them and they are hidden, so just go round again
+					continue;
+				}
+				// is is a directory ?
+				if (Files.isDirectory(p)) {
+					if (listFilterType.isIncludeDirectories()) {
+						boolean addit = false;
+						// are we looking for a regexp and if so are we checking directory entries with
+						// it ?
+						if ((regexpPattern != null) && !regexpFilesOnly) {
+							if (regexpPattern.matcher(name).find()) {
+								addit = true;
+							}
+						} else {
+							// no regexp or we're not checking directoryies, either way just add it
+							addit = true;
+						}
+						if (addit) {
+							directoryEntries.add(new DirectoryEntry(name, DirectoryEntry.Type.DIRECTORY, p));
+						}
+					}
+					continue;
+				}
+				if (Files.isRegularFile(p)) {
+					if (listFilterType.isIncludeFiles()) {
+						boolean addit = false;
+						// are we looking for a regexp ?
+						if (regexpPattern != null) {
+							if (regexpPattern.matcher(name).find()) {
+								addit = true;
+							}
+						} else {
+							// no regexp just add it
+							addit = true;
+						}
+						if (addit) {
+							fileEntries.add(new DirectoryEntry(name, DirectoryEntry.Type.FILE, p));
+						}
+					}
+					continue;
+				}
+				// not a directory or file, no logic to handle it needed
+			}
+		} catch (IOException | DirectoryIteratorException x) {
+			// IOException can never be thrown by the iteration.
+			// In this snippet, it can only be thrown by newDirectoryStream.
+			System.err.println(x);
+		}
+		// now work out how to combine the results, if one type was excluded it won't
+		// have been added to it's set, so this is an ordering process, not a which set
+		// to
+		// include process
+		List<DirectoryEntry> finalList = new LinkedList<>();
+		switch (listOrderType) {
+		case DIRECTORIES_FIRST:
+			finalList.addAll(directoryEntries);
+			finalList.addAll(fileEntries);
+			break;
+		case FILES_FIRST:
+			finalList.addAll(fileEntries);
+			finalList.addAll(directoryEntries);
+			break;
+		case JUST_BY_NAME:
+		default:
+			// if there is an additional enum problem just do both
+			finalList.addAll(fileEntries);
+			finalList.addAll(directoryEntries);
+			Collections.sort(finalList);
+			break;
+		}
+		return finalList;
+	}
+
+	/**
+	 * From the given directory list the directory entries as strings subject to the
+	 * controls
+	 * 
+	 * @param dir                 directory to list
+	 * @param listFilterType      what entries to return (sub dirs, files or both)
+	 * @param listOrderType       how to order the result, directories first, files
+	 *                            first, or both (each segment is in alphabetical
+	 *                            order)
+	 * @param excludeHiddenFiles  If true hidden entries (beginning with .) are not
+	 *                            included in the list
+	 * @param regexp              if provided is used to only select matching
+	 *                            entries, for example files ending in .java
+	 * @param regexpFilesOnly     does the regexp apply to both directories and
+	 *                            files or just files
+	 * @param nameAndType         if true then the name and type will be in the
+	 *                            result (e.g. tim.txt (File)), if false only the
+	 *                            name (e.g. tim.txt)
+	 * @param addAbandon          If true then the abandon option will be added at
+	 *                            the end of the list and made the default
+	 * @param addCurrentDirectory If true then an entry will be made for the current
+	 *                            directory (".")
+	 * @param addParentDirectory  If true then an entry will be made for the parent
+	 *                            directory ("..")
+	 * @return the ChoiceDescriptionData object which is ready to be used.
+	 */
+	public static ChoiceDescriptionData<DirectoryEntry> buildChoiceDescriptionDataFromDirectory(String dir,
+			DirectoryListFilterType listFilterType, DirectoryListOrderType listOrderType, boolean excludeHiddenFiles,
+			String regexp, boolean regexpFilesOnly, boolean nameAndType, boolean addAbandon,
+			boolean addCurrentDirectory, boolean addParentDirectory) {
+		return buildChoiceDescriptionDataFromDirectory(Path.of(dir), listFilterType, listOrderType, excludeHiddenFiles,
+				regexp, regexpFilesOnly, nameAndType, addAbandon, addCurrentDirectory, addParentDirectory);
+	}
+
+	public static String CURRENT_DIRECTORY = ".";
+	public static String PARENT_DIRECTORY = "..";
+
+	/**
+	 * From the given directory list the directory entries as strings subject to the
+	 * controls
+	 * 
+	 * @param dir                 directory to list
+	 * @param listFilterType      what entries to return (sub dirs, files or both)
+	 * @param listOrderType       how to order the result, directories first, files
+	 *                            first, or both (each segment is in alphabetical
+	 *                            order)
+	 * @param excludeHiddenFiles  If true hidden entries (beginning with .) are not
+	 *                            included in the list
+	 * @param regexp              if provided is used to only select matching
+	 *                            entries, for example files ending in .java
+	 * @param regexpFilesOnly     does the regexp apply to both directories and
+	 *                            files or just files
+	 * @param nameAndType         if true then the name and type will be in the
+	 *                            result (e.g. tim.txt (File)), if false only the
+	 *                            name (e.g. tim.txt)
+	 * @param addAbandon          If true then the abandon option will be added at
+	 *                            the end of the list and made the default
+	 * @param addCurrentDirectory If true then an entry will be made for the current
+	 *                            directory (".") at the top of the list
+	 * @param addParentDirectory  If true then an entry will be made for the parent
+	 *                            directory ("..") at the top of the list
+	 * @return the ChoiceDescriptionData object which is ready to be used.
+	 */
+	public static ChoiceDescriptionData<DirectoryEntry> buildChoiceDescriptionDataFromDirectory(Path dir,
+			DirectoryListFilterType listFilterType, DirectoryListOrderType listOrderType, boolean excludeHiddenFiles,
+			String regexp, boolean regexpFilesOnly, boolean nameAndType, boolean addAbandon,
+			boolean addCurrentDirectory, boolean addParentDirectory) {
+		// make sure we have a directory to scan
+		if (!Files.isDirectory(dir)) {
+			throw new IllegalArgumentException(
+					"Provided dir param " + dir.toString() + " is not a directory, cannot scan it");
+		}
+		List<DirectoryEntry> entries = listDirectoryEntries(dir, listFilterType, listOrderType, excludeHiddenFiles,
+				regexp, regexpFilesOnly);
+		// if we are adding the parent directory insert it before the current so if both
+		// are selected the order will be current, parent, entries
+		if (addParentDirectory) {
+			// for just "." this will return null, for ./src it will return "."
+			// it is important not to normalise this as otherwise .src will be normalized to
+			// serc and getParent will at that point fail
+			Path parentDir = dir.getParent();
+			if (parentDir != null) {
+				entries.add(0, new DirectoryEntry(PARENT_DIRECTORY, Type.DIRECTORY, parentDir));
+			}
+		}
+		if (addCurrentDirectory) {
+			entries.add(0, new DirectoryEntry(CURRENT_DIRECTORY, Type.DIRECTORY, dir));
+		}
+
+		List<ChoiceDescription<DirectoryEntry>> entriesChoices = entries.stream()
+				.map(entry -> new ChoiceDescription<DirectoryEntry>(nameAndType ? entry.getNameType() : entry.getName(),
+						entry))
+				.toList();
+		// set it up
+		ChoiceDescriptionData<DirectoryEntry> cdd = new ChoiceDescriptionData<>(entriesChoices);
+		if (addAbandon) {
+			// this will also force it to complete itself, co no need to call that
+			// separately
+			cdd.addAbandonOption("Cancel", false, true);
+		} else {
+			// complete it and lock it down
+			cdd.completeAndLock();
+		}
+		return cdd;
+	}
+
+	/**
+	 * From the given directory list the directory entries as strings subject to the
+	 * controls
+	 * 
+	 * @param dir                directory to list
+	 * @param selectionMode      what choices to allow, this will influence what
+	 *                           content is chosen and thus indirectly may override
+	 *                           sort order for some options (e.g. if only files can
+	 *                           be selected then no subdirectories will be shown)
+	 * @param listOrderType      how to order the result, directories first, files
+	 *                           first, or both (each segment is in alphabetical
+	 *                           order)
+	 * @param excludeHiddenFiles if true will not list entries that are hidden by OS
+	 *                           convention
+	 * @param regexp             if provided is used to only select matching
+	 *                           entries, for example files ending in .java
+	 * @param regexpFilesOnly    does the regexp apply to both directories and files
+	 *                           or just files
+	 * @param nameAndType        if true then the name and type will be in the
+	 *                           result (e.g. tim.txt (File)), if false only the
+	 *                           name (e.g. tim.txt)
+	 * @param addAbandon         If true then the abandon option will be added at
+	 *                           the end of the list and made the default
+	 * @return the DirectoryEntry selected or null if the abandon choice was taken
+	 * @throws IOException
+	 */
+	public static DirectoryEntry choseFromDirectory(String prompt, String dir, DirectorySelectionMode selectionMode,
+			DirectoryListOrderType listOrderType, boolean excludeHiddenFiles, String regexp, boolean regexpFilesOnly,
+			boolean nameAndType, boolean addAbandon) throws IOException {
+		return choseFromDirectory(prompt, Path.of(dir), selectionMode, listOrderType, excludeHiddenFiles, regexp,
+				regexpFilesOnly, nameAndType, addAbandon);
+	}
+
+	/**
+	 * From the given directory list the directory entries as strings subject to the
+	 * controls
+	 * 
+	 * @param dir                directory to list
+	 * @param selectionMode      what choices to allow, this will influence what
+	 *                           content is chosen and thus indirectly may override
+	 *                           sort order for some options (e.g. if only files can
+	 *                           be selected then no subdirectories will be shown)
+	 * @param listOrderType      how to order the result, directories first, files
+	 *                           first, or both (each segment is in alphabetical
+	 *                           order)
+	 * @param excludeHiddenFiles if true will not list entries that are hidden by OS
+	 *                           convention
+	 * @param regexp             if provided is used to only select matching
+	 *                           entries, for example files ending in .java
+	 * @param regexpFilesOnly    does the regexp apply to both directories and files
+	 *                           or just files
+	 * @param nameAndType        if true then the name and type will be in the
+	 *                           result (e.g. tim.txt (File)), if false only the
+	 *                           name (e.g. tim.txt)
+	 * @param addAbandon         If true then the abandon option will be added at
+	 *                           the end of the list and made the default
+	 * @return the DirectoryEntry selected or null if the abandon choice was taken
+	 * @throws IOException
+	 */
+	public static DirectoryEntry choseFromDirectory(String prompt, Path dir, DirectorySelectionMode selectionMode,
+			DirectoryListOrderType listOrderType, boolean excludeHiddenFiles, String regexp, boolean regexpFilesOnly,
+			boolean nameAndType, boolean addAbandon) throws IOException {
+		// if what we are given is a file, then build a entry for that and return it
+		// this would seem to be the correct behavior, and will also help if doing
+		// recursive processing
+		if (Files.isRegularFile(dir)) {
+			return new DirectoryEntry(dir.getFileName().toString(), DirectoryEntry.Type.FILE, dir);
+		}
+		ChoiceDescriptionData<DirectoryEntry> cdd = buildChoiceDescriptionDataFromDirectory(dir,
+				selectionMode.getDirectoryListFilterType(), listOrderType, excludeHiddenFiles, regexp, regexpFilesOnly,
+				nameAndType, addAbandon, selectionMode.isCurrentDirectoryIncludedAsOption(),
+				selectionMode.isParentDirectoryIncludedAsOption());
+		DirectoryEntry directoryEntry = getParamChoice(prompt + " (" + dir.toString() + ")", cdd);
+
+		if (directoryEntry == null) {
+			// they chose the abandon, pass that back
+			return null;
+		}
+		// if we are limiting to only the current directory then return it, as the build
+		// choice description will have only built entries for the allowed types we
+		// don't need to figure out if we're returning a directory when they have chosen
+		// a file or anything like that
+		if (!selectionMode.isNavigableMode()) {
+			return directoryEntry;
+		}
+		// if what has been chosen is a directory AND it's the current directory AND we
+		// are allowing directories to be selected as a leaf return it
+		if ((directoryEntry.getType() == Type.DIRECTORY) && (directoryEntry.getName().equals(CURRENT_DIRECTORY))
+				&& selectionMode.isDirectoryAllowedAsLeaf()) {
+			return directoryEntry;
+		}
+		// they are allowed to navigate to a sub directory. recurse, if it's a file it
+		// will just be returned, if it's a directory it will either be opened or
+		// selected depending on the selection mode (see the handling of that earlier in
+		// this code)
+		return choseFromDirectory(prompt, directoryEntry.getPath(), selectionMode, listOrderType, excludeHiddenFiles,
+				regexp, regexpFilesOnly, nameAndType, addAbandon);
 	}
 
 	/**
@@ -2350,7 +3225,7 @@ public class TextIOUtils {
 		return LocalDate.of(year, month, day);
 	}
 
-	private static String toTwoDigit(int number) {
+	public static String toTwoDigit(int number) {
 		if (number <= -10) {
 			return "" + number;
 		} else if (number < 0) {
@@ -2362,7 +3237,7 @@ public class TextIOUtils {
 		}
 	}
 
-	private static String toFourDigit(int number) {
+	public static String toFourDigit(int number) {
 		if (number <= -1000) {
 			return "" + number;
 		} else if (number <= -100) {
@@ -2384,7 +3259,6 @@ public class TextIOUtils {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
 	public static <T extends Enum<T>> ChoiceDescriptionData<Enum<T>> buildChoiceDescriptionDataFromSampleEnumValue(
 			Enum<T> enumconstant) {
 		return buildChoiceDescriptionDataFromSampleEnumValue(enumconstant, true);
