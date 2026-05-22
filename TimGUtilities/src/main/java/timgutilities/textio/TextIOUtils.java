@@ -242,9 +242,9 @@ public class TextIOUtils {
 	 *                     or reading the input
 	 */
 	public static boolean getYN(String prompt, boolean defaultValue) throws IOException {
-		prompt = prompt + "(y/n)";
+		String realPrompt = prompt + "(y/n)";
 		while (true) {
-			String res = getString(prompt, defaultValue ? "y" : "n");
+			String res = getString(realPrompt, defaultValue ? "y" : "n");
 			if (res.equalsIgnoreCase("Y")) {
 				return true;
 			}
@@ -267,9 +267,9 @@ public class TextIOUtils {
 	 *                     or reading the input
 	 */
 	public static boolean getYN(String prompt) throws IOException {
-		prompt = prompt + "(y/n)";
+		String realPrompt = prompt + "(y/n)";
 		while (true) {
-			String res = getString(prompt);
+			String res = getString(realPrompt);
 			if (res.equalsIgnoreCase("Y")) {
 				return true;
 			}
@@ -464,9 +464,9 @@ public class TextIOUtils {
 		Integer defaultIndex = choiceDescriptionData.getDefaultOptionNumber();
 		if (defaultIndex != null) {
 			processedPrompt += "\n";
-			return getInt(processedPrompt, NUM_TYPE.SELECTION, 0, choicesCount - 1, defaultIndex);
+			return getInt(processedPrompt, NumberInputOption.SELECTION, 0, choicesCount - 1, defaultIndex);
 		} else {
-			return getInt(processedPrompt, NUM_TYPE.SELECTION, 0, choicesCount - 1);
+			return getInt(processedPrompt, NumberInputOption.SELECTION, 0, choicesCount - 1);
 		}
 	}
 
@@ -741,6 +741,76 @@ public class TextIOUtils {
 	}
 
 	/**
+	 * defined the various options that apply when entering numbers with upper /
+	 * lowers.
+	 * 
+	 * This enum is deprecated as it has been moved out into a separate enum class
+	 * file NumberInputOption. For backwards compatibility methods with the old
+	 * signatures still exist which do the conversion and call the real methods with
+	 * the proper enums
+	 * 
+	 * This enum will be maintained until at least version 2 of this package
+	 */
+	@Deprecated(forRemoval = true, since = "1.0.16")
+	public enum NUM_TYPE {
+		/**
+		 * ignores the lower / upper limits
+		 */
+		@Deprecated(forRemoval = true, since = "1.0.16")
+		ANY_NUM(NumberInputOption.ANY_NUM),
+		/**
+		 * input must be &gt;= lower limit, upper limit is ignored
+		 */
+		@Deprecated(forRemoval = true, since = "1.0.16")
+		AT_OR_ABOVE(NumberInputOption.AT_OR_ABOVE),
+		/**
+		 * input must be &gt; lower limit, upper limit is ignored
+		 */
+		@Deprecated(forRemoval = true, since = "1.0.16")
+		ABOVE(NumberInputOption.ABOVE),
+		/**
+		 * input must be &lt; = lower limit, upper limit is ignored
+		 */
+		@Deprecated(forRemoval = true, since = "1.0.16")
+		AT_OR_BELOW(NumberInputOption.AT_OR_BELOW),
+		/**
+		 * input must be &lt; lower limit, upper limit is ignored
+		 */
+		@Deprecated(forRemoval = true, since = "1.0.16")
+		BELOW(NumberInputOption.BELOW),
+
+		/**
+		 * input must be &gt;= lower limit and &lt;= upper limit
+		 */
+		@Deprecated(forRemoval = true, since = "1.0.16")
+		RANGE(NumberInputOption.RANGE),
+		/**
+		 * the same a RANGE, but no restriction text is displayed
+		 */
+		@Deprecated(forRemoval = true, since = "1.0.16")
+		SELECTION(NumberInputOption.SELECTION);
+
+		private NumberInputOption numberInputOption;
+
+		@Deprecated(forRemoval = true, since = "1.0.16")
+		NUM_TYPE(NumberInputOption numberInputOption) {
+			this.numberInputOption = numberInputOption;
+		}
+
+		/**
+		 * get the NumberInputOption that has replaced this internal enum constant
+		 * 
+		 * @return the numberInputOption
+		 */
+
+		@Deprecated(forRemoval = true, since = "1.0.16")
+		public NumberInputOption getNumberInputOption() {
+			return numberInputOption;
+		}
+
+	}
+
+	/**
 	 * Asks the user to enter an integer in base 10, this is parsed and if that
 	 * fails then the user is re-prompted, if the parsing succeeds then the entered
 	 * number is returned to the caller
@@ -751,7 +821,7 @@ public class TextIOUtils {
 	 *                     or reading the input
 	 */
 	public static int getInt(String prompt) throws IOException {
-		return getInt(prompt, NUM_TYPE.ANY_NUM, Integer.MIN_VALUE, Integer.MAX_VALUE);
+		return getInt(prompt, NumberInputOption.ANY_NUM, Integer.MIN_VALUE, Integer.MAX_VALUE);
 	}
 
 	/**
@@ -765,7 +835,7 @@ public class TextIOUtils {
 	 *                     or reading the input
 	 */
 	public static int getIntHex(String prompt) throws IOException {
-		return getIntBase(prompt, NUM_TYPE.ANY_NUM, Integer.MIN_VALUE, Integer.MAX_VALUE, 16);
+		return getIntBase(prompt, NumberInputOption.ANY_NUM, Integer.MIN_VALUE, Integer.MAX_VALUE, 16);
 	}
 
 	/**
@@ -780,7 +850,7 @@ public class TextIOUtils {
 	 *                     or reading the input
 	 */
 	public static int getIntBase(String prompt, int base) throws IOException {
-		return getIntBase(prompt, NUM_TYPE.ANY_NUM, Integer.MIN_VALUE, Integer.MAX_VALUE, base);
+		return getIntBase(prompt, NumberInputOption.ANY_NUM, Integer.MIN_VALUE, Integer.MAX_VALUE, base);
 	}
 
 	/**
@@ -797,7 +867,7 @@ public class TextIOUtils {
 	 *                     or reading the input
 	 */
 	public static int getInt(String prompt, int defaultValue) throws IOException {
-		return getInt(prompt, NUM_TYPE.ANY_NUM, Integer.MIN_VALUE, Integer.MAX_VALUE, true, defaultValue, 10);
+		return getInt(prompt, NumberInputOption.ANY_NUM, Integer.MIN_VALUE, Integer.MAX_VALUE, true, defaultValue, 10);
 	}
 
 	/**
@@ -814,7 +884,7 @@ public class TextIOUtils {
 	 *                     or reading the input
 	 */
 	public static int getIntHex(String prompt, int defaultValue) throws IOException {
-		return getInt(prompt, NUM_TYPE.ANY_NUM, Integer.MIN_VALUE, Integer.MAX_VALUE, true, defaultValue, 16);
+		return getInt(prompt, NumberInputOption.ANY_NUM, Integer.MIN_VALUE, Integer.MAX_VALUE, true, defaultValue, 16);
 	}
 
 	/**
@@ -832,7 +902,33 @@ public class TextIOUtils {
 	 *                     or reading the input
 	 */
 	public static int getIntBase(String prompt, int defaultValue, int base) throws IOException {
-		return getInt(prompt, NUM_TYPE.ANY_NUM, Integer.MIN_VALUE, Integer.MAX_VALUE, true, defaultValue, base);
+		return getInt(prompt, NumberInputOption.ANY_NUM, Integer.MIN_VALUE, Integer.MAX_VALUE, true, defaultValue,
+				base);
+	}
+
+	/**
+	 * Prompt the user to enter a base 10 integer number relative to the upper /
+	 * lower, if no number is entered then the user is prompted to have another go
+	 * 
+	 * This method is deprecated and is only provided for backwards compatibility it
+	 * is a wrapper around getInt(String , NumberInputOption , int , int ) throws
+	 * IOException
+	 * 
+	 * This method will be maintained until at least version 2 of this package
+	 * 
+	 * @param prompt the prompt to use when asking for input
+	 * @param type   the type of checking to do see TextIOUtils.NUM_TYPE
+	 * @param lower  if relevant for the type the lower limit for checking
+	 * @param upper  if relevant for the type the upper limit for checking
+	 * @return the entered number
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
+	 * @see NUM_TYPE
+	 */
+
+	@Deprecated(forRemoval = true, since = "1.0.16")
+	public static int getInt(String prompt, NUM_TYPE type, int lower, int upper) throws IOException {
+		return getInt(prompt, type.getNumberInputOption(), lower, upper);
 	}
 
 	/**
@@ -846,10 +942,36 @@ public class TextIOUtils {
 	 * @return the entered number
 	 * @throws IOException if there is a problem setting up the reader on the input
 	 *                     or reading the input
-	 * @see TextIOUtils.NUM_TYPE
+	 * @see NumberInputOption
 	 */
-	public static int getInt(String prompt, NUM_TYPE type, int lower, int upper) throws IOException {
+	public static int getInt(String prompt, NumberInputOption type, int lower, int upper) throws IOException {
 		return getInt(prompt, type, lower, upper, false, 0, 10);
+	}
+
+	/**
+	 * Prompt the user to enter a base 10 integer number relative to the upper /
+	 * lower, if no number is entered then the default value is used
+	 * 
+	 * This method is deprecated and is only provided for backwards compatibility it
+	 * is a wrapper around getInt(String , NumberInputOption , int , int, int)
+	 * throws IOException
+	 * 
+	 * This method will be maintained until at least version 2 of this package
+	 * 
+	 * @param prompt       the prompt to use when asking for input
+	 * @param type         the type of checking to do see TextIOUtils.NUM_TYPE
+	 * @param lower        if relevant for the type the lower limit for checking
+	 * @param upper        if relevant for the type the upper limit for checking
+	 * @param defaultValue the default value to use if the user just presses return
+	 * @return the entered number
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
+	 * @see NUM_TYPE
+	 */
+
+	@Deprecated(forRemoval = true, since = "1.0.16")
+	public static int getInt(String prompt, NUM_TYPE type, int lower, int upper, int defaultValue) throws IOException {
+		return getInt(prompt, type.getNumberInputOption(), lower, upper, defaultValue);
 	}
 
 	/**
@@ -864,10 +986,36 @@ public class TextIOUtils {
 	 * @return the entered number
 	 * @throws IOException if there is a problem setting up the reader on the input
 	 *                     or reading the input
-	 * @see TextIOUtils.NUM_TYPE
+	 * @see NumberInputOption
 	 */
-	public static int getInt(String prompt, NUM_TYPE type, int lower, int upper, int defaultValue) throws IOException {
+	public static int getInt(String prompt, NumberInputOption type, int lower, int upper, int defaultValue)
+			throws IOException {
 		return getInt(prompt, type, lower, upper, true, defaultValue, 10);
+	}
+
+	/**
+	 * Prompt the user to enter a base 16 (HEX) integer number relative to the upper
+	 * / lower, if no number is entered then the user is prompted to have another go
+	 * 
+	 * This method is deprecated and is only provided for backwards compatibility it
+	 * is a wrapper around getIntHex(String , NumberInputOption , int , int, int)
+	 * throws IOException
+	 * 
+	 * This method will be maintained until at least version 2 of this package
+	 * 
+	 * @param prompt the prompt to use when asking for input
+	 * @param type   the type of checking to do see TextIOUtils.NUM_TYPE
+	 * @param lower  if relevant for the type the lower limit for checking
+	 * @param upper  if relevant for the type the upper limit for checking
+	 * @return the entered number
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
+	 * @see NUM_TYPE
+	 */
+
+	@Deprecated(forRemoval = true, since = "1.0.16")
+	public static int getIntHex(String prompt, NUM_TYPE type, int lower, int upper) throws IOException {
+		return getIntHex(prompt, type.getNumberInputOption(), lower, upper);
 	}
 
 	/**
@@ -882,8 +1030,36 @@ public class TextIOUtils {
 	 * @throws IOException if there is a problem setting up the reader on the input
 	 *                     or reading the input
 	 */
-	public static int getIntHex(String prompt, NUM_TYPE type, int lower, int upper) throws IOException {
+	public static int getIntHex(String prompt, NumberInputOption type, int lower, int upper) throws IOException {
 		return getInt(prompt, type, lower, upper, false, 0, 16);
+	}
+
+	/**
+	 * Prompt the user to enter a base 16 (HEX) integer number relative to the upper
+	 * / lower, if no number is entered then the default value is used
+	 * 
+	 * This method is deprecated and is only provided for backwards compatibility it
+	 * is a wrapper around getIntHex(String , NumberInputOption , int , int, int)
+	 * throws IOException
+	 * 
+	 * This method will be maintained until at least version 2 of this package
+	 * 
+	 * @param prompt       the prompt to use when asking for input
+	 * @param type         the type of checking to do see TextIOUtils.NUM_TYPE
+	 * @param lower        if relevant for the type the lower limit for checking
+	 * @param upper        if relevant for the type the upper limit for checking
+	 * @param defaultValue the default value to use if the user just presses return
+	 * @return the entered number
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
+	 * 
+	 * @see NUM_TYPE
+	 */
+
+	@Deprecated(forRemoval = true, since = "1.0.16")
+	public static int getIntHex(String prompt, NUM_TYPE type, int lower, int upper, int defaultValue)
+			throws IOException {
+		return getIntHex(prompt, type.getNumberInputOption(), lower, upper, defaultValue);
 	}
 
 	/**
@@ -899,11 +1075,38 @@ public class TextIOUtils {
 	 * @throws IOException if there is a problem setting up the reader on the input
 	 *                     or reading the input
 	 * 
-	 * @see TextIOUtils.NUM_TYPE
+	 * @see NumberInputOption
 	 */
-	public static int getIntHex(String prompt, NUM_TYPE type, int lower, int upper, int defaultValue)
+	public static int getIntHex(String prompt, NumberInputOption type, int lower, int upper, int defaultValue)
 			throws IOException {
 		return getInt(prompt, type, lower, upper, true, defaultValue, 16);
+	}
+
+	/**
+	 * Prompt the user to enter an arbitrary base integer number relative to the
+	 * upper / lower, if no number is entered then the user is prompted to have
+	 * another go
+	 * 
+	 * This method is deprecated and is only provided for backwards compatibility it
+	 * is a wrapper around getIntBase(String , NumberInputOption , int , int, int)
+	 * throws IOException
+	 * 
+	 * This method will be maintained until at least version 2 of this package
+	 * 
+	 * @param prompt the prompt to use when asking for input
+	 * @param type   the type of checking to do see TextIOUtils.NUM_TYPE
+	 * @param lower  if relevant for the type the lower limit for checking
+	 * @param upper  if relevant for the type the upper limit for checking
+	 * @param base   the number base to use (e.g. 2 for binary, 16 for hex)
+	 * @return the entered number
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
+	 * @see NUM_TYPE
+	 */
+
+	@Deprecated(forRemoval = true, since = "1.0.16")
+	public static int getIntBase(String prompt, NUM_TYPE type, int lower, int upper, int base) throws IOException {
+		return getIntBase(prompt, type.getNumberInputOption(), lower, upper, base);
 	}
 
 	/**
@@ -919,10 +1122,39 @@ public class TextIOUtils {
 	 * @return the entered number
 	 * @throws IOException if there is a problem setting up the reader on the input
 	 *                     or reading the input
-	 * @see TextIOUtils.NUM_TYPE
+	 * @see NumberInputOption
 	 */
-	public static int getIntBase(String prompt, NUM_TYPE type, int lower, int upper, int base) throws IOException {
+	public static int getIntBase(String prompt, NumberInputOption type, int lower, int upper, int base)
+			throws IOException {
 		return getInt(prompt, type, lower, upper, false, 0, base);
+	}
+
+	/**
+	 * Prompt the user to enter an arbitrary base integer number relative to the
+	 * upper / lower, if no number is entered then the default value is used
+	 * 
+	 * This method is deprecated and is only provided for backwards compatibility it
+	 * is a wrapper around getIntBase(String , NumberInputOption , int , int, int,
+	 * int) throws IOException
+	 * 
+	 * This method will be maintained until at least version 2 of this package
+	 * 
+	 * @param prompt       the prompt to use when asking for input
+	 * @param type         the type of checking to do see TextIOUtils.NUM_TYPE
+	 * @param lower        if relevant for the type the lower limit for checking
+	 * @param upper        if relevant for the type the upper limit for checking
+	 * @param defaultValue the default value to use if the user just presses return
+	 * @param base         the number base to use (e.g. 2 for binary, 16 for hex)
+	 * @return the entered number
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
+	 * @see NUM_TYPE
+	 */
+
+	@Deprecated(forRemoval = true, since = "1.0.16")
+	public static int getIntBase(String prompt, NUM_TYPE type, int lower, int upper, int defaultValue, int base)
+			throws IOException {
+		return getIntBase(prompt, type.getNumberInputOption(), lower, upper, defaultValue, base);
 	}
 
 	/**
@@ -938,11 +1170,41 @@ public class TextIOUtils {
 	 * @return the entered number
 	 * @throws IOException if there is a problem setting up the reader on the input
 	 *                     or reading the input
-	 * @see TextIOUtils.NUM_TYPE
+	 * @see NumberInputOption
 	 */
-	public static int getIntBase(String prompt, NUM_TYPE type, int lower, int upper, int defaultValue, int base)
-			throws IOException {
+	public static int getIntBase(String prompt, NumberInputOption type, int lower, int upper, int defaultValue,
+			int base) throws IOException {
 		return getInt(prompt, type, lower, upper, true, defaultValue, base);
+	}
+
+	/**
+	 * Prompt the user to enter a base 10 integer number relative to the upper /
+	 * lower, if no number is entered then the default value is used. If useDefault
+	 * is true then the value of the default is displayed after the text describing
+	 * the restriction, if false it is not
+	 * 
+	 * This method is deprecated and is only provided for backwards compatibility it
+	 * is a wrapper around getInt(String , NumberInputOption , int , int, boolean,
+	 * int) throws IOException
+	 * 
+	 * This method will be maintained until at least version 2 of this package
+	 * 
+	 * @param prompt       the prompt to use when asking for input
+	 * @param type         the type of checking to do see TextIOUtils.NUM_TYPE
+	 * @param lower        if relevant for the type the lower limit for checking
+	 * @param upper        if relevant for the type the upper limit for checking
+	 * @param useDefault   if true offer the defaultValue
+	 * @param defaultValue the default value to use if the user just presses return
+	 * @return the entered number
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
+	 * @see NUM_TYPE
+	 */
+
+	@Deprecated(forRemoval = true, since = "1.0.16")
+	public static int getInt(String prompt, NUM_TYPE type, int lower, int upper, boolean useDefault, int defaultValue)
+			throws IOException {
+		return getInt(prompt, type.getNumberInputOption(), lower, upper, useDefault, defaultValue);
 	}
 
 	/**
@@ -960,11 +1222,42 @@ public class TextIOUtils {
 	 * @return the entered number
 	 * @throws IOException if there is a problem setting up the reader on the input
 	 *                     or reading the input
-	 * @see TextIOUtils.NUM_TYPE
+	 * @see NumberInputOption
 	 */
-	public static int getInt(String prompt, NUM_TYPE type, int lower, int upper, boolean useDefault, int defaultValue)
-			throws IOException {
+	public static int getInt(String prompt, NumberInputOption type, int lower, int upper, boolean useDefault,
+			int defaultValue) throws IOException {
 		return getInt(prompt, type, lower, upper, useDefault, defaultValue, 10);
+	}
+
+	/**
+	 * Prompt the user to enter an arbitrary base integer number relative to the
+	 * upper / lower, if no number is entered then the default value is used. If
+	 * useDefault is true then the value of the default is displayed after the text
+	 * describing the restriction, if false it is not
+	 * 
+	 * This method is deprecated and is only provided for backwards compatibility it
+	 * is a wrapper around getInt(String , NumberInputOption , int , int, boolean,
+	 * int, int) throws IOException
+	 * 
+	 * This method will be maintained until at least version 2 of this package
+	 * 
+	 * @param prompt       the prompt to use when asking for input
+	 * @param type         the type of checking to do see TextIOUtils.NUM_TYPE
+	 * @param lower        if relevant for the type the lower limit for checking
+	 * @param upper        if relevant for the type the upper limit for checking
+	 * @param useDefault   if true offer the defaultValue
+	 * @param defaultValue the default value to use if the user just presses return
+	 * @param base         the number base to use (e.g. 2 for binary, 16 for hex)
+	 * @return the entered number
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
+	 * @see NumberInputOption
+	 */
+
+	@Deprecated(forRemoval = true, since = "1.0.16")
+	public static int getInt(String prompt, NUM_TYPE type, int lower, int upper, boolean useDefault, int defaultValue,
+			int base) throws IOException {
+		return getInt(prompt, type.getNumberInputOption(), lower, upper, useDefault, defaultValue, base);
 	}
 
 	/**
@@ -983,11 +1276,12 @@ public class TextIOUtils {
 	 * @return the entered number
 	 * @throws IOException if there is a problem setting up the reader on the input
 	 *                     or reading the input
-	 * @see TextIOUtils.NUM_TYPE
+	 * @see NumberInputOption
 	 */
-	public static int getInt(String prompt, NUM_TYPE type, int lower, int upper, boolean useDefault, int defaultValue,
-			int base) throws IOException {
+	public static int getInt(String prompt, NumberInputOption type, int lower, int upper, boolean useDefault,
+			int defaultValue, int base) throws IOException {
 		String restriction = "";
+		int result;
 		switch (type) {
 		case ANY_NUM:
 			break;
@@ -1010,11 +1304,8 @@ public class TextIOUtils {
 			restriction = " (Must be < " + Integer.toString(lower, base) + ")";
 			break;
 		default:
-			restriction = "Unknown input restrictions, this is a programming error, defaulting to allowing any input";
-			type = NUM_TYPE.ANY_NUM;
-			break;
+			throw new IllegalArgumentException("Unknown input restrictions " + type + ", this is a programming error");
 		}
-		int result;
 		while (true) {
 			String resp = useDefault ? getString(prompt + restriction, "" + defaultValue)
 					: getString(prompt + restriction);
@@ -1026,27 +1317,27 @@ public class TextIOUtils {
 				continue;
 			}
 			// sanity check if needed
-			if (type == NUM_TYPE.AT_OR_ABOVE) {
+			if (type == NumberInputOption.AT_OR_ABOVE) {
 				if (result < lower) {
 					System.out.println("Invalid input, must be >= " + lower);
 					continue;
 				}
-			} else if (type == NUM_TYPE.ABOVE) {
+			} else if (type == NumberInputOption.ABOVE) {
 				if (result <= lower) {
 					System.out.println("Invalid input, must be > " + lower);
 					continue;
 				}
-			} else if (type == NUM_TYPE.AT_OR_BELOW) {
+			} else if (type == NumberInputOption.AT_OR_BELOW) {
 				if (result > lower) {
 					System.out.println("Invalid input, must be <= " + lower);
 					continue;
 				}
-			} else if (type == NUM_TYPE.BELOW) {
+			} else if (type == NumberInputOption.BELOW) {
 				if (result >= lower) {
 					System.out.println("Invalid input, must be < " + lower);
 					continue;
 				}
-			} else if ((type == NUM_TYPE.RANGE) || (type == NUM_TYPE.SELECTION)) {
+			} else if ((type == NumberInputOption.RANGE) || (type == NumberInputOption.SELECTION)) {
 				if (result < lower || result > upper) {
 					System.out.println("Invalid input, must be >= " + lower + " and <= " + upper);
 					continue;
@@ -1066,7 +1357,7 @@ public class TextIOUtils {
 	 *                     or reading the input
 	 */
 	public static long getLong(String prompt) throws IOException {
-		return getLong(prompt, NUM_TYPE.ANY_NUM, Long.MIN_VALUE, Long.MAX_VALUE, 10);
+		return getLong(prompt, NumberInputOption.ANY_NUM, Long.MIN_VALUE, Long.MAX_VALUE, 10);
 	}
 
 	/**
@@ -1078,7 +1369,7 @@ public class TextIOUtils {
 	 *                     or reading the input
 	 */
 	public static long getLongHex(String prompt) throws IOException {
-		return getLongBase(prompt, NUM_TYPE.ANY_NUM, Long.MIN_VALUE, Long.MAX_VALUE, 16);
+		return getLongBase(prompt, NumberInputOption.ANY_NUM, Long.MIN_VALUE, Long.MAX_VALUE, 16);
 	}
 
 	/**
@@ -1092,7 +1383,7 @@ public class TextIOUtils {
 	 *                     or reading the input
 	 */
 	public static long getLongBase(String prompt, int base) throws IOException {
-		return getLongBase(prompt, NUM_TYPE.ANY_NUM, Long.MIN_VALUE, Long.MAX_VALUE, base);
+		return getLongBase(prompt, NumberInputOption.ANY_NUM, Long.MIN_VALUE, Long.MAX_VALUE, base);
 	}
 
 	/**
@@ -1106,7 +1397,7 @@ public class TextIOUtils {
 	 *                     or reading the input
 	 */
 	public static long getLong(String prompt, long defaultValue) throws IOException {
-		return getLong(prompt, NUM_TYPE.ANY_NUM, Long.MIN_VALUE, Long.MAX_VALUE, true, defaultValue, 10);
+		return getLong(prompt, NumberInputOption.ANY_NUM, Long.MIN_VALUE, Long.MAX_VALUE, true, defaultValue, 10);
 	}
 
 	/**
@@ -1120,7 +1411,7 @@ public class TextIOUtils {
 	 *                     or reading the input
 	 */
 	public static long getLongHex(String prompt, long defaultValue) throws IOException {
-		return getLong(prompt, NUM_TYPE.ANY_NUM, Long.MIN_VALUE, Long.MAX_VALUE, true, defaultValue, 16);
+		return getLong(prompt, NumberInputOption.ANY_NUM, Long.MIN_VALUE, Long.MAX_VALUE, true, defaultValue, 16);
 	}
 
 	/**
@@ -1137,7 +1428,32 @@ public class TextIOUtils {
 	 *                     or reading the input
 	 */
 	public static long getLongBase(String prompt, long defaultValue, int base) throws IOException {
-		return getLong(prompt, NUM_TYPE.ANY_NUM, Integer.MIN_VALUE, Integer.MAX_VALUE, true, defaultValue, base);
+		return getLong(prompt, NumberInputOption.ANY_NUM, Integer.MIN_VALUE, Integer.MAX_VALUE, true, defaultValue,
+				base);
+	}
+
+	/**
+	 * see getInt(prompt, type, lower, upper) but returns a Long
+	 * 
+	 * This method is deprecated and is only provided for backwards compatibility it
+	 * is a wrapper around getLong(String , NumberInputOption , long , long) throws
+	 * IOException
+	 * 
+	 * This method will be maintained until at least version 2 of this package
+	 * 
+	 * @param prompt the prompt to use when asking for input
+	 * @param type   the type of checking to do see TextIOUtils.NUM_TYPE
+	 * @param lower  if relevant for the type the lower limit for checking
+	 * @param upper  if relevant for the type the upper limit for checking
+	 * @return the entered number
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
+	 * @see NUM_TYPE
+	 */
+
+	@Deprecated(forRemoval = true, since = "1.0.16")
+	public static long getLong(String prompt, NUM_TYPE type, long lower, long upper) throws IOException {
+		return getLong(prompt, type.getNumberInputOption(), lower, upper);
 	}
 
 	/**
@@ -1150,10 +1466,36 @@ public class TextIOUtils {
 	 * @return the entered number
 	 * @throws IOException if there is a problem setting up the reader on the input
 	 *                     or reading the input
-	 * @see TextIOUtils.NUM_TYPE
+	 * @see NumberInputOption
 	 */
-	public static long getLong(String prompt, NUM_TYPE type, long lower, long upper) throws IOException {
+	public static long getLong(String prompt, NumberInputOption type, long lower, long upper) throws IOException {
 		return getLong(prompt, type, lower, upper, false, 0, 10);
+	}
+
+	/**
+	 * see getInt(prompt, type, lower, upper, defaultValue) but returns a Long
+	 * 
+	 * This method is deprecated and is only provided for backwards compatibility it
+	 * is a wrapper around getLong(String , NumberInputOption , long , long, long)
+	 * throws IOException
+	 * 
+	 * This method will be maintained until at least version 2 of this package
+	 * 
+	 * @param prompt       the prompt to use when asking for input
+	 * @param type         the type of checking to do see TextIOUtils.NUM_TYPE
+	 * @param lower        if relevant for the type the lower limit for checking
+	 * @param upper        if relevant for the type the upper limit for checking
+	 * @param defaultValue the default value to use if the user just presses return
+	 * @return the entered number
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
+	 * @see NUM_TYPE
+	 */
+
+	@Deprecated(forRemoval = true, since = "1.0.16")
+	public static long getLong(String prompt, NUM_TYPE type, long lower, long upper, long defaultValue)
+			throws IOException {
+		return getLong(prompt, type.getNumberInputOption(), lower, upper, defaultValue);
 	}
 
 	/**
@@ -1167,11 +1509,35 @@ public class TextIOUtils {
 	 * @return the entered number
 	 * @throws IOException if there is a problem setting up the reader on the input
 	 *                     or reading the input
-	 * @see TextIOUtils.NUM_TYPE
+	 * @see NumberInputOption
 	 */
-	public static long getLong(String prompt, NUM_TYPE type, long lower, long upper, long defaultValue)
+	public static long getLong(String prompt, NumberInputOption type, long lower, long upper, long defaultValue)
 			throws IOException {
 		return getLong(prompt, type, lower, upper, true, defaultValue, 10);
+	}
+
+	/**
+	 * see getIntHex(prompt, type, lower, upper) but returns a Long
+	 * 
+	 * This method is deprecated and is only provided for backwards compatibility it
+	 * is a wrapper around getLongHex(String , NumberInputOption , long , long)
+	 * throws IOException
+	 * 
+	 * This method will be maintained until at least version 2 of this package
+	 * 
+	 * @param prompt the prompt to use when asking for input
+	 * @param type   the type of checking to do see TextIOUtils.NUM_TYPE
+	 * @param lower  if relevant for the type the lower limit for checking
+	 * @param upper  if relevant for the type the upper limit for checking
+	 * @return the entered number
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
+	 * @see NUM_TYPE
+	 */
+
+	@Deprecated(forRemoval = true, since = "1.0.16")
+	public static long getLongHex(String prompt, NUM_TYPE type, long lower, long upper) throws IOException {
+		return getLongHex(prompt, type.getNumberInputOption(), lower, upper);
 	}
 
 	/**
@@ -1184,10 +1550,36 @@ public class TextIOUtils {
 	 * @return the entered number
 	 * @throws IOException if there is a problem setting up the reader on the input
 	 *                     or reading the input
-	 * @see TextIOUtils.NUM_TYPE
+	 * @see NumberInputOption
 	 */
-	public static long getLongHex(String prompt, NUM_TYPE type, long lower, long upper) throws IOException {
+	public static long getLongHex(String prompt, NumberInputOption type, long lower, long upper) throws IOException {
 		return getLong(prompt, type, lower, upper, false, 0, 16);
+	}
+
+	/**
+	 * see getIntHex(prompt, type, lower, upper, defaultValue) but returns a Long
+	 * 
+	 * This method is deprecated and is only provided for backwards compatibility it
+	 * is a wrapper around getLongHex(String , NumberInputOption , long , long,
+	 * long) throws IOException
+	 * 
+	 * This method will be maintained until at least version 2 of this package
+	 * 
+	 * @param prompt       the prompt to use when asking for input
+	 * @param type         the type of checking to do see TextIOUtils.NUM_TYPE
+	 * @param lower        if relevant for the type the lower limit for checking
+	 * @param upper        if relevant for the type the upper limit for checking
+	 * @param defaultValue the default value to use if the user just presses return
+	 * @return the entered number
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
+	 * @see NUM_TYPE
+	 */
+
+	@Deprecated(forRemoval = true, since = "1.0.16")
+	public static long getLongHex(String prompt, NUM_TYPE type, long lower, long upper, long defaultValue)
+			throws IOException {
+		return getLongHex(prompt, type.getNumberInputOption(), lower, upper, defaultValue);
 	}
 
 	/**
@@ -1201,11 +1593,36 @@ public class TextIOUtils {
 	 * @return the entered number
 	 * @throws IOException if there is a problem setting up the reader on the input
 	 *                     or reading the input
-	 * @see TextIOUtils.NUM_TYPE
+	 * @see NumberInputOption
 	 */
-	public static long getLongHex(String prompt, NUM_TYPE type, long lower, long upper, long defaultValue)
+	public static long getLongHex(String prompt, NumberInputOption type, long lower, long upper, long defaultValue)
 			throws IOException {
 		return getLong(prompt, type, lower, upper, true, defaultValue, 16);
+	}
+
+	/**
+	 * see getInt(prompt, type, lower, upper, base) but returns a Long
+	 * 
+	 * This method is deprecated and is only provided for backwards compatibility it
+	 * is a wrapper around getLongBase(String , NumberInputOption , long , long,
+	 * int) throws IOException
+	 * 
+	 * This method will be maintained until at least version 2 of this package
+	 * 
+	 * @param prompt the prompt to use when asking for input
+	 * @param type   the type of checking to do see TextIOUtils.NUM_TYPE
+	 * @param lower  if relevant for the type the lower limit for checking
+	 * @param upper  if relevant for the type the upper limit for checking
+	 * @param base   the number base to use (e.g. 2 for binary, 16 for hex)
+	 * @return the entered number
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
+	 * @see NUM_TYPE
+	 */
+
+	@Deprecated(forRemoval = true, since = "1.0.16")
+	public static long getLongBase(String prompt, NUM_TYPE type, long lower, long upper, int base) throws IOException {
+		return getLongBase(prompt, type.getNumberInputOption(), lower, upper, base);
 	}
 
 	/**
@@ -1219,10 +1636,39 @@ public class TextIOUtils {
 	 * @return the entered number
 	 * @throws IOException if there is a problem setting up the reader on the input
 	 *                     or reading the input
-	 * @see TextIOUtils.NUM_TYPE
+	 * @see NumberInputOption
 	 */
-	public static long getLongBase(String prompt, NUM_TYPE type, long lower, long upper, int base) throws IOException {
+	public static long getLongBase(String prompt, NumberInputOption type, long lower, long upper, int base)
+			throws IOException {
 		return getLong(prompt, type, lower, upper, false, 0, base);
+	}
+
+	/**
+	 * see getIntBase(prompt, type, lower, upper, defaultValue, base) but returns a
+	 * Long
+	 * 
+	 * This method is deprecated and is only provided for backwards compatibility it
+	 * is a wrapper around getLongBase(String , NumberInputOption , long , long,
+	 * long, int) throws IOException
+	 * 
+	 * This method will be maintained until at least version 2 of this package
+	 * 
+	 * @param prompt       the prompt to use when asking for input
+	 * @param type         the type of checking to do see TextIOUtils.NUM_TYPE
+	 * @param lower        if relevant for the type the lower limit for checking
+	 * @param upper        if relevant for the type the upper limit for checking
+	 * @param base         the number base to use (e.g. 2 for binary, 16 for hex)
+	 * @param defaultValue the default value to use if the user just presses return
+	 * @return the entered number
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
+	 * @see NUM_TYPE
+	 */
+
+	@Deprecated(forRemoval = true, since = "1.0.16")
+	public static long getLongBase(String prompt, NUM_TYPE type, long lower, long upper, long defaultValue, int base)
+			throws IOException {
+		return getLongBase(prompt, type.getNumberInputOption(), lower, upper, defaultValue, base);
 	}
 
 	/**
@@ -1238,11 +1684,39 @@ public class TextIOUtils {
 	 * @return the entered number
 	 * @throws IOException if there is a problem setting up the reader on the input
 	 *                     or reading the input
-	 * @see TextIOUtils.NUM_TYPE
+	 * @see NumberInputOption
 	 */
-	public static long getLongBase(String prompt, NUM_TYPE type, long lower, long upper, long defaultValue, int base)
-			throws IOException {
+	public static long getLongBase(String prompt, NumberInputOption type, long lower, long upper, long defaultValue,
+			int base) throws IOException {
 		return getLong(prompt, type, lower, upper, true, defaultValue, base);
+	}
+
+	/**
+	 * see getInt(prompt, type, lower, upper, useDefault, useDefault, defaultValue)
+	 * but returns a Long
+	 * 
+	 * This method is deprecated and is only provided for backwards compatibility it
+	 * is a wrapper around getLong(String , NumberInputOption , long , long,
+	 * boolean, long) throws IOException
+	 * 
+	 * This method will be maintained until at least version 2 of this package
+	 * 
+	 * @param prompt       the prompt to use when asking for input
+	 * @param type         the type of checking to do see TextIOUtils.NUM_TYPE
+	 * @param lower        if relevant for the type the lower limit for checking
+	 * @param upper        if relevant for the type the upper limit for checking
+	 * @param useDefault   if true offer the default value
+	 * @param defaultValue the default value to use if the user just presses return
+	 * @return the entered number
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
+	 * @see NUM_TYPE
+	 */
+
+	@Deprecated(forRemoval = true, since = "1.0.16")
+	public static long getLong(String prompt, NUM_TYPE type, long lower, long upper, boolean useDefault,
+			long defaultValue) throws IOException {
+		return getLong(prompt, type.getNumberInputOption(), lower, upper, useDefault, defaultValue);
 	}
 
 	/**
@@ -1258,11 +1732,40 @@ public class TextIOUtils {
 	 * @return the entered number
 	 * @throws IOException if there is a problem setting up the reader on the input
 	 *                     or reading the input
-	 * @see TextIOUtils.NUM_TYPE
+	 * @see NumberInputOption
 	 */
-	public static long getLong(String prompt, NUM_TYPE type, long lower, long upper, boolean useDefault,
+	public static long getLong(String prompt, NumberInputOption type, long lower, long upper, boolean useDefault,
 			long defaultValue) throws IOException {
 		return getLong(prompt, type, lower, upper, useDefault, defaultValue, 10);
+	}
+
+	/**
+	 * see getLongBase(prompt, type, lower, upper, useDefault, defaultValue, base)
+	 * but returns a Long
+	 * 
+	 * This method is deprecated and is only provided for backwards compatibility it
+	 * is a wrapper around getLong(String , NumberInputOption , long , long,
+	 * boolean, long, int) throws IOException
+	 * 
+	 * This method will be maintained until at least version 2 of this package
+	 * 
+	 * @param prompt       the prompt to use when asking for input
+	 * @param type         the type of checking to do see TextIOUtils.NUM_TYPE
+	 * @param lower        if relevant for the type the lower limit for checking
+	 * @param upper        if relevant for the type the upper limit for checking
+	 * @param useDefault   if true offer the default value
+	 * @param defaultValue the default value to use if the user just presses return
+	 * @param base         the number base to use (e.g. 2 for binary, 16 for hex)
+	 * @return the entered number
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
+	 * @see NUM_TYPE
+	 */
+
+	@Deprecated(forRemoval = true, since = "1.0.16")
+	public static long getLong(String prompt, NUM_TYPE type, long lower, long upper, boolean useDefault,
+			long defaultValue, int base) throws IOException {
+		return getLong(prompt, type.getNumberInputOption(), lower, upper, useDefault, defaultValue, base);
 	}
 
 	/**
@@ -1279,11 +1782,12 @@ public class TextIOUtils {
 	 * @return the entered number
 	 * @throws IOException if there is a problem setting up the reader on the input
 	 *                     or reading the input
-	 * @see TextIOUtils.NUM_TYPE
+	 * @see NumberInputOption
 	 */
-	public static long getLong(String prompt, NUM_TYPE type, long lower, long upper, boolean useDefault,
+	public static long getLong(String prompt, NumberInputOption type, long lower, long upper, boolean useDefault,
 			long defaultValue, int base) throws IOException {
 		String restriction = "";
+		long result;
 		switch (type) {
 		case ANY_NUM:
 			break;
@@ -1305,11 +1809,8 @@ public class TextIOUtils {
 			restriction = " (Must be < " + Long.toString(lower, base) + ")";
 			break;
 		default:
-			restriction = "Unknown input restrictions, this is a programming error, defaulting to allowing any input";
-			type = NUM_TYPE.ANY_NUM;
-			break;
+			throw new IllegalArgumentException("Unknown input restrictions " + type + ", this is a programming error");
 		}
-		long result;
 		while (true) {
 			String resp = useDefault ? getString(prompt + restriction, "" + defaultValue)
 					: getString(prompt + restriction);
@@ -1321,27 +1822,27 @@ public class TextIOUtils {
 				continue;
 			}
 			// sanity check if needed
-			if (type == NUM_TYPE.AT_OR_ABOVE) {
+			if (type == NumberInputOption.AT_OR_ABOVE) {
 				if (result < lower) {
 					System.out.println("Invalid input, must be >= " + lower);
 					continue;
 				}
-			} else if (type == NUM_TYPE.ABOVE) {
+			} else if (type == NumberInputOption.ABOVE) {
 				if (result <= lower) {
 					System.out.println("Invalid input, must be > " + lower);
 					continue;
 				}
-			} else if (type == NUM_TYPE.AT_OR_BELOW) {
+			} else if (type == NumberInputOption.AT_OR_BELOW) {
 				if (result > lower) {
 					System.out.println("Invalid input, must be <= " + lower);
 					continue;
 				}
-			} else if (type == NUM_TYPE.BELOW) {
+			} else if (type == NumberInputOption.BELOW) {
 				if (result >= lower) {
 					System.out.println("Invalid input, must be < " + lower);
 					continue;
 				}
-			} else if ((type == NUM_TYPE.RANGE) || (type == NUM_TYPE.SELECTION)) {
+			} else if ((type == NumberInputOption.RANGE) || (type == NumberInputOption.SELECTION)) {
 				if (result < lower || result > upper) {
 					System.out.println("Invalid input, must be >= " + lower + " and <= " + upper);
 					continue;
@@ -1361,7 +1862,7 @@ public class TextIOUtils {
 	 *                     or reading the input
 	 */
 	public static double getDouble(String prompt) throws IOException {
-		return getDouble(prompt, NUM_TYPE.ANY_NUM, Double.MIN_VALUE, Double.MAX_VALUE);
+		return getDouble(prompt, NumberInputOption.ANY_NUM, Double.MIN_VALUE, Double.MAX_VALUE);
 	}
 
 	/**
@@ -1374,7 +1875,31 @@ public class TextIOUtils {
 	 *                     or reading the input
 	 */
 	public static double getDouble(String prompt, double defaultValue) throws IOException {
-		return getDouble(prompt, NUM_TYPE.ANY_NUM, Double.MIN_VALUE, Double.MAX_VALUE, true, defaultValue);
+		return getDouble(prompt, NumberInputOption.ANY_NUM, Double.MIN_VALUE, Double.MAX_VALUE, true, defaultValue);
+	}
+
+	/**
+	 * see getInt(prompt, type, lower, upper) but returns a double
+	 * 
+	 * This method is deprecated and is only provided for backwards compatibility it
+	 * is a wrapper around getDouble(String , NumberInputOption , double , double)
+	 * throws IOException
+	 * 
+	 * This method will be maintained until at least version 2 of this package
+	 * 
+	 * @param prompt the prompt to use when asking for input
+	 * @param type   the type of checking to do see TextIOUtils.NUM_TYPE
+	 * @param lower  if relevant for the type the lower limit for checking
+	 * @param upper  if relevant for the type the upper limit for checking
+	 * @return the entered number
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
+	 * @see NUM_TYPE
+	 */
+
+	@Deprecated(forRemoval = true, since = "1.0.16")
+	public static double getDouble(String prompt, NUM_TYPE type, double lower, double upper) throws IOException {
+		return getDouble(prompt, type.getNumberInputOption(), lower, upper);
 	}
 
 	/**
@@ -1387,10 +1912,37 @@ public class TextIOUtils {
 	 * @return the entered number
 	 * @throws IOException if there is a problem setting up the reader on the input
 	 *                     or reading the input
-	 * @see TextIOUtils.NUM_TYPE
+	 * @see NumberInputOption
 	 */
-	public static double getDouble(String prompt, NUM_TYPE type, double lower, double upper) throws IOException {
+	public static double getDouble(String prompt, NumberInputOption type, double lower, double upper)
+			throws IOException {
 		return getDouble(prompt, type, lower, upper, false, 0.0);
+	}
+
+	/**
+	 * see getInt(prompt, type, lower, upper, defaultValue) but returns a double
+	 * 
+	 * This method is deprecated and is only provided for backwards compatibility it
+	 * is a wrapper around getDouble(String , NumberInputOption , double , double,
+	 * double) throws IOException
+	 * 
+	 * This method will be maintained until at least version 2 of this package
+	 * 
+	 * @param prompt       the prompt to use when asking for input
+	 * @param type         the type of checking to do see TextIOUtils.NUM_TYPE
+	 * @param lower        if relevant for the type the lower limit for checking
+	 * @param upper        if relevant for the type the upper limit for checking
+	 * @param defaultValue the default value to use if the user just presses return
+	 * @return the entered number
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
+	 * @see NUM_TYPE
+	 */
+
+	@Deprecated(forRemoval = true, since = "1.0.16")
+	public static double getDouble(String prompt, NUM_TYPE type, double lower, double upper, double defaultValue)
+			throws IOException {
+		return getDouble(prompt, type.getNumberInputOption(), lower, upper, defaultValue);
 	}
 
 	/**
@@ -1404,16 +1956,22 @@ public class TextIOUtils {
 	 * @return the entered number
 	 * @throws IOException if there is a problem setting up the reader on the input
 	 *                     or reading the input
-	 * @see TextIOUtils.NUM_TYPE
+	 * @see NumberInputOption
 	 */
-	public static double getDouble(String prompt, NUM_TYPE type, double lower, double upper, double defaultValue)
-			throws IOException {
+	public static double getDouble(String prompt, NumberInputOption type, double lower, double upper,
+			double defaultValue) throws IOException {
 		return getDouble(prompt, type, lower, upper, true, defaultValue);
 	}
 
 	/**
-	 * see getIntBase(prompt, type, lower, upper, useDefault, useDefault,
-	 * defaultValue) but returns a double
+	 * see getInt(prompt, type, lower, upper, useDefault, useDefault, defaultValue)
+	 * but returns a double
+	 * 
+	 * This method is deprecated and is only provided for backwards compatibility it
+	 * is a wrapper around getDouble(String , NumberInputOption , double , double,
+	 * boolean, double) throws IOException
+	 * 
+	 * This method will be maintained until at least version 2 of this package
 	 * 
 	 * @param prompt       the prompt to use when asking for input
 	 * @param type         the type of checking to do see TextIOUtils.NUM_TYPE
@@ -1424,11 +1982,34 @@ public class TextIOUtils {
 	 * @return the entered number
 	 * @throws IOException if there is a problem setting up the reader on the input
 	 *                     or reading the input
-	 * @see TextIOUtils.NUM_TYPE
+	 * @see NUM_TYPE
 	 */
+
+	@Deprecated(forRemoval = true, since = "1.0.16")
 	public static double getDouble(String prompt, NUM_TYPE type, double lower, double upper, boolean useDefault,
 			double defaultValue) throws IOException {
+		return getDouble(prompt, type.getNumberInputOption(), lower, upper, useDefault, defaultValue);
+	}
+
+	/**
+	 * see getInt(prompt, type, lower, upper, useDefault, useDefault, defaultValue)
+	 * but returns a double
+	 * 
+	 * @param prompt       the prompt to use when asking for input
+	 * @param type         the type of checking to do see TextIOUtils.NUM_TYPE
+	 * @param lower        if relevant for the type the lower limit for checking
+	 * @param upper        if relevant for the type the upper limit for checking
+	 * @param useDefault   if true offer the default value
+	 * @param defaultValue the default value to use if the user just presses return
+	 * @return the entered number
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
+	 * @see NumberInputOption
+	 */
+	public static double getDouble(String prompt, NumberInputOption type, double lower, double upper,
+			boolean useDefault, double defaultValue) throws IOException {
 		String restriction = "";
+		double result;
 		switch (type) {
 		case ABOVE:
 			restriction = " (Must be > " + lower + ")";
@@ -1449,8 +2030,9 @@ public class TextIOUtils {
 			break;
 		case SELECTION:
 			break;
+		default:
+			throw new IllegalArgumentException("Unknown input restrictions " + type + ", this is a programming error");
 		}
-		double result;
 		while (true) {
 			String resp = useDefault ? getString(prompt + restriction, "" + defaultValue)
 					: getString(prompt + restriction);
@@ -1462,27 +2044,27 @@ public class TextIOUtils {
 				continue;
 			}
 			// sanity check if needed
-			if (type == NUM_TYPE.AT_OR_ABOVE) {
+			if (type == NumberInputOption.AT_OR_ABOVE) {
 				if (result < lower) {
 					System.out.println("Invalid input, must be >= " + lower);
 					continue;
 				}
-			} else if (type == NUM_TYPE.ABOVE) {
+			} else if (type == NumberInputOption.ABOVE) {
 				if (result <= lower) {
 					System.out.println("Invalid input, must be > " + lower);
 					continue;
 				}
-			} else if (type == NUM_TYPE.AT_OR_BELOW) {
+			} else if (type == NumberInputOption.AT_OR_BELOW) {
 				if (result > lower) {
 					System.out.println("Invalid input, must be <= " + lower);
 					continue;
 				}
-			} else if (type == NUM_TYPE.BELOW) {
+			} else if (type == NumberInputOption.BELOW) {
 				if (result >= lower) {
 					System.out.println("Invalid input, must be < " + lower);
 					continue;
 				}
-			} else if ((type == NUM_TYPE.RANGE) || (type == NUM_TYPE.SELECTION)) {
+			} else if ((type == NumberInputOption.RANGE) || (type == NumberInputOption.SELECTION)) {
 				if (result < lower || result > upper) {
 					System.out.println("Invalid input, must be >= " + lower + " and <= " + upper);
 					continue;
@@ -1491,43 +2073,6 @@ public class TextIOUtils {
 			break;
 		}
 		return result;
-	}
-
-	/**
-	 * defined the various options that apply when entering numbers with upper /
-	 * lowers.
-	 */
-	public enum NUM_TYPE {
-		/**
-		 * ignores the lower / upper limits
-		 */
-		ANY_NUM,
-		/**
-		 * input must be &gt;= lower limit, upper limit is ignored
-		 */
-		AT_OR_ABOVE,
-		/**
-		 * input must be &gt; lower limit, upper limit is ignored
-		 */
-		ABOVE,
-		/**
-		 * input must be &lt; = lower limit, upper limit is ignored
-		 */
-		AT_OR_BELOW,
-		/**
-		 * input must be &lt; lower limit, upper limit is ignored
-		 */
-		BELOW,
-
-		/**
-		 * input must be &gt;= lower limit and &lt;= upper limit
-		 */
-		RANGE,
-		/**
-		 * the same a RANGE, but no restriction text is displayed
-		 */
-		SELECTION;
-
 	}
 
 	/**
@@ -3160,15 +3705,15 @@ public class TextIOUtils {
 		int offset = defaulToCurrentOffset ? ZonedDateTime.now().getOffset().getTotalSeconds() : 0;
 		int hoursOffsetDefault = offset / 3600;
 		int minsOffsetDefault = (offset % 3600) / 60;
-		int hoursOffset = getInt("Please enter time zone offset hours from GMT for " + prompt, NUM_TYPE.RANGE, -12, 12,
-				hoursOffsetDefault);
+		int hoursOffset = getInt("Please enter time zone offset hours from GMT for " + prompt, NumberInputOption.RANGE,
+				-12, 12, hoursOffsetDefault);
 		int minsOffset;
 		if (hoursOffset < 0) {
-			minsOffset = getInt("Please enter time zone offset mins from GMT for " + prompt, NUM_TYPE.RANGE, -59, 0,
-					minsOffsetDefault);
+			minsOffset = getInt("Please enter time zone offset mins from GMT for " + prompt, NumberInputOption.RANGE,
+					-59, 0, minsOffsetDefault);
 		} else {
-			minsOffset = getInt("Please enter time zone offset mins from GMT for " + prompt, NUM_TYPE.RANGE, 0, 59,
-					minsOffsetDefault);
+			minsOffset = getInt("Please enter time zone offset mins from GMT for " + prompt, NumberInputOption.RANGE, 0,
+					59, minsOffsetDefault);
 		}
 		return ZoneOffset.ofHoursMinutes(hoursOffset, minsOffset);
 	}
@@ -3395,7 +3940,7 @@ public class TextIOUtils {
 		if (defaulthour > maxhour) {
 			defaulthour = maxhour;
 		}
-		int hour = getInt("Please enter hours for " + prompt, NUM_TYPE.RANGE, minhour, maxhour, defaulthour);
+		int hour = getInt("Please enter hours for " + prompt, NumberInputOption.RANGE, minhour, maxhour, defaulthour);
 
 		int minmin = mintime.getHour() == hour ? mintime.getMinute() : 0;
 		int maxmin = maxtime.getHour() == hour ? maxtime.getMinute() : 59;
@@ -3406,7 +3951,7 @@ public class TextIOUtils {
 		if (defaultmin > maxmin) {
 			defaultmin = maxmin;
 		}
-		int mins = getInt("Please enter mins for " + prompt, NUM_TYPE.RANGE, minmin, maxmin, defaultmin);
+		int mins = getInt("Please enter mins for " + prompt, NumberInputOption.RANGE, minmin, maxmin, defaultmin);
 
 		int minsec = ((mintime.getHour() == hour) && (mintime.getMinute() == mins)) ? mintime.getSecond() : 0;
 		int maxsec = ((maxtime.getHour() == hour) && (maxtime.getMinute() == mins)) ? maxtime.getSecond() : 59;
@@ -3417,7 +3962,7 @@ public class TextIOUtils {
 		if (defaultsec > maxsec) {
 			defaultsec = maxsec;
 		}
-		int secs = getInt("Please enter secs for " + prompt, NUM_TYPE.RANGE, minsec, maxsec, defaultsec);
+		int secs = getInt("Please enter secs for " + prompt, NumberInputOption.RANGE, minsec, maxsec, defaultsec);
 		return LocalTime.of(hour, mins, secs);
 	}
 
@@ -3505,8 +4050,8 @@ public class TextIOUtils {
 		if (ld.isAfter(maxdate)) {
 			ld = maxdate;
 		}
-		int year = getInt("Please enter year for " + prompt, NUM_TYPE.RANGE, mindate.getYear(), maxdate.getYear(),
-				ld.getYear());
+		int year = getInt("Please enter year for " + prompt, NumberInputOption.RANGE, mindate.getYear(),
+				maxdate.getYear(), ld.getYear());
 		// given the year what are the options for months - it might be we have a
 		// restricted number if the year is at the begining or end of the range
 		int minmonth = mindate.getYear() == year ? mindate.getMonthValue() : 1;
@@ -3518,8 +4063,8 @@ public class TextIOUtils {
 		if (defaultmonth > maxmonth) {
 			defaultmonth = maxmonth;
 		}
-		int month = getInt("Please enter month in " + year + " for " + prompt, NUM_TYPE.RANGE, minmonth, maxmonth,
-				defaultmonth);
+		int month = getInt("Please enter month in " + year + " for " + prompt, NumberInputOption.RANGE, minmonth,
+				maxmonth, defaultmonth);
 
 		// work out the day of the month, whihs can vary betwene 28 & 31 depending on
 		// the month (and possibly leap year) and also
@@ -3536,8 +4081,8 @@ public class TextIOUtils {
 		if (currentDayOfMonth > maxday) {
 			currentDayOfMonth = maxday;
 		}
-		int day = getInt("Please enter day within " + year + " and month " + month + " for " + prompt, NUM_TYPE.RANGE,
-				minday, maxday, currentDayOfMonth);
+		int day = getInt("Please enter day within " + year + " and month " + month + " for " + prompt,
+				NumberInputOption.RANGE, minday, maxday, currentDayOfMonth);
 		return LocalDate.of(year, month, day);
 	}
 
