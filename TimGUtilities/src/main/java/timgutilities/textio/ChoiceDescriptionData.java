@@ -1,4 +1,6 @@
-/*Copyright (c) 2023 Tim Graves.
+/*
+ * 
+ * Copyright (c) 2026 Tim Graves.
 
 The Universal Permissive License (UPL), Version 1.0
 
@@ -45,28 +47,35 @@ import java.util.stream.Collectors;
 /**
  * This class represents a set of choice inputs for the choice engine.
  * 
- * @param <P>
+ * @param <P> If using the contained ChoiceDescription(s) to hold an object (for
+ *            example when listing directory entries) then P represents the
+ *            object type they are holding
  */
 public class ChoiceDescriptionData<P> implements Cloneable {
+	/**
+	 * the deault text to be used for abandon options
+	 */
 	public final static String ABANDON_TEXT = "Abandon this operation";
 	private static final int EXPECTED_MAX_CHOICES = 30; // this is just to minimize array resizing
 	private List<ChoiceDescription<P>> choiceDescriptions = new ArrayList<>(ChoiceDescriptionData.EXPECTED_MAX_CHOICES);
-	boolean processed = false; // if true then the object has been "finalized" in terms of any sorting, adding
-								// abandon options etc.
-	boolean doSort = false; // do the fields need sorting during the processing phase
-	boolean separateFields = false; // is the output to be split by "," or not
-	boolean abandonAdded = false; // do we need to add an "abandon" option
+	private boolean processed = false; // if true then the object has been "finalized" in terms of any sorting, adding
+	// abandon options etc.
+	private boolean doSort = false; // do the fields need sorting during the processing phase
+	private boolean separateFields = false; // is the output to be split by "," or not
+	private boolean abandonAdded = false; // do we need to add an "abandon" option
 	private Integer defaultOptionInt = null;
 	private ChoiceDescription<P> defaultOption = null; // if set then this will be used as the default choice in the
 														// selection
 	private ChoiceDescription<P> abandonChoice; // if we need to add an abandon option in processing this is it
 
 	/**
-	 * Built based on array input for all the descriptions
+	 * Built based on array input for all the descriptions, all arrays must be the
+	 * same size
 	 * 
-	 * @param options
-	 * @param descriptions
-	 * @param additionals
+	 * @param options      an array of option strings (will be presented as the
+	 *                     option)
+	 * @param descriptions an array of description string
+	 * @param additionals  an array of additional info strings
 	 */
 	public ChoiceDescriptionData(String[] options, String[] descriptions, String[] additionals) {
 		super();
@@ -85,8 +94,9 @@ public class ChoiceDescriptionData<P> implements Cloneable {
 	/**
 	 * build based on array input for the choice text and description
 	 * 
-	 * @param options
-	 * @param descriptions
+	 * @param options      an array of option strings (will be presented as the
+	 *                     option)
+	 * @param descriptions an array of description string
 	 */
 	public ChoiceDescriptionData(String[] options, String[] descriptions) {
 		super();
@@ -102,7 +112,7 @@ public class ChoiceDescriptionData<P> implements Cloneable {
 	/**
 	 * build from an array with just options text
 	 * 
-	 * @param options
+	 * @param options an array of option strings (will be presented as the option)
 	 */
 	public ChoiceDescriptionData(String[] options) {
 		for (int i = 0; i < options.length; i++) {
@@ -113,16 +123,17 @@ public class ChoiceDescriptionData<P> implements Cloneable {
 	/**
 	 * build from a collection of jst the options text
 	 * 
-	 * @param options
+	 * @param options a collection of option strings (will be presented as the
+	 *                option)
 	 */
 	public ChoiceDescriptionData(Collection<String> options) {
 		this(options.toArray(new String[0]));
 	}
 
 	/**
-	 * build from a list of choce description objects that already exist
+	 * build from a list of choice description objects that already exist
 	 * 
-	 * @param cds
+	 * @param cds ChoiceDescriptions to add
 	 */
 	public ChoiceDescriptionData(List<ChoiceDescription<P>> cds) {
 		this.addChoiceDescription(cds);
@@ -178,7 +189,7 @@ public class ChoiceDescriptionData<P> implements Cloneable {
 	 * Add a choicedesription object, cannot be done if the choices data has already
 	 * been processed
 	 * 
-	 * @param cd
+	 * @param cd ChoiceDescription to add
 	 */
 	public void addChoiceDescription(ChoiceDescription<P> cd) {
 		if (processed) {
@@ -188,12 +199,12 @@ public class ChoiceDescriptionData<P> implements Cloneable {
 	}
 
 	/**
-	 * adds all of the choice description objects in the list, can't be done once
-	 * pre-selection processing has happened
+	 * adds all of the choice description objects in the collection, can't be done
+	 * once pre-selection processing has happened
 	 * 
-	 * @param cds
+	 * @param cds ChoiceDescriptions to add
 	 */
-	public void addChoiceDescription(List<ChoiceDescription<P>> cds) {
+	public void addChoiceDescription(Collection<ChoiceDescription<P>> cds) {
 		if (processed) {
 			throw new IllegalStateException("Can't add choices once this has been locked");
 		}
@@ -203,8 +214,8 @@ public class ChoiceDescriptionData<P> implements Cloneable {
 	/**
 	 * checks if the option at index i is the abandon option
 	 * 
-	 * @param i
-	 * @return
+	 * @param i index of the ChoiceDescription to check
+	 * @return true if it is, ralse if not
 	 */
 	public boolean isAbandoned(int i) {
 		if (abandonAdded) {
@@ -218,8 +229,8 @@ public class ChoiceDescriptionData<P> implements Cloneable {
 	 * remove the choice at the specified index, can't be done once pre-selection
 	 * processing has happened
 	 * 
-	 * @param i
-	 * @return
+	 * @param i index of the ChoiceDescription to remove
+	 * @return true if successful
 	 */
 	public boolean removeChoice(int i) {
 		if (processed) {
@@ -242,6 +253,10 @@ public class ChoiceDescriptionData<P> implements Cloneable {
 	 * Present the options and get the users input returning the option text for
 	 * that choice
 	 * 
+	 * If not already done triggers the process of handling sort, adding abandons
+	 * etc, and makes the list read only. Only call when you're ready to use this.
+	 * 
+	 * @param i the option string of the option at that index
 	 * @return the choice
 	 */
 	public String getChoice(int i) {
@@ -256,6 +271,7 @@ public class ChoiceDescriptionData<P> implements Cloneable {
 	 * negative or more than the number of descriptions (this counts from zero) then
 	 * null is returned.
 	 * 
+	 * @param index the index to use to get the choice
 	 * @return the choice
 	 */
 	public ChoiceDescription<P> getChoiceDescription(Integer index) {
@@ -270,10 +286,14 @@ public class ChoiceDescriptionData<P> implements Cloneable {
 
 	/**
 	 * Present the options and get the users input returning the associated
-	 * description for that choice
+	 * description for that choice.
 	 * 
-	 * @param i
-	 * @return
+	 * If not already done triggers the process of handling sort, adding abandons
+	 * etc, and makes the list read only. Only call when you're ready to use this.
+	 * 
+	 * 
+	 * @param i the index of the ChoiceDescription whose description to get
+	 * @return gets the description string for the chosen option
 	 */
 	public String getDescription(int i) {
 		if (!processed) {
@@ -284,10 +304,13 @@ public class ChoiceDescriptionData<P> implements Cloneable {
 
 	/**
 	 * present the options and get the users choice returning the additional text
-	 * for that choice
+	 * for that choice.
 	 * 
-	 * @param i
-	 * @return
+	 * If not already done triggers the process of handling sort, adding abandons
+	 * etc, and makes the list read only. Only call when you're ready to use this.
+	 * 
+	 * @param i number of option
+	 * @return gets the additional string for the chosen option
 	 */
 	public String getAdditional(int i) {
 		if (!processed) {
@@ -300,8 +323,11 @@ public class ChoiceDescriptionData<P> implements Cloneable {
 	 * present the otpions and get the users choice returning the param object for
 	 * that choice
 	 * 
-	 * @param i
-	 * @return
+	 * If not already done triggers the process of handling sort, adding abandons
+	 * etc, and makes the list read only. Only call when you're ready to use this.
+	 * 
+	 * @param i the index of the ChoiceDescription whose param to get
+	 * @return the returned param
 	 */
 	public P getParam(int i) {
 		if (!processed) {
@@ -310,6 +336,10 @@ public class ChoiceDescriptionData<P> implements Cloneable {
 		return choiceDescriptions.get(i).getParam();
 	}
 
+	/**
+	 * Triggers the process of handling sort, adding abandons etc, and makes the
+	 * list read only. Only call when you're ready to use this.
+	 */
 	public void completeAndLock() {
 		if (!processed) {
 			process();
@@ -333,7 +363,7 @@ public class ChoiceDescriptionData<P> implements Cloneable {
 	 * how many options are currently held, note that if the pre-selection
 	 * processing has happened this may include an abandon option
 	 * 
-	 * @return
+	 * @return the number of choices
 	 */
 	public int length() {
 		return choiceDescriptions.size();
@@ -343,8 +373,11 @@ public class ChoiceDescriptionData<P> implements Cloneable {
 	 * get the combined data (option, description and additional) for the option at
 	 * that index, if it's the abandon option then only the text is returned.
 	 * 
-	 * @param i
-	 * @return
+	 * If not already done triggers the process of handling sort, adding abandons
+	 * etc, and makes the list read only. Only call when you're ready to use this.
+	 * 
+	 * @param i the index of the ChoiceDescription whose data to get
+	 * @return the text data form the choice
 	 */
 	public String getData(int i) {
 		if (!processed) {
@@ -359,6 +392,12 @@ public class ChoiceDescriptionData<P> implements Cloneable {
 		return cd.getData(separateFields);
 	}
 
+	/**
+	 * generates the list of options as a string
+	 * 
+	 * If not already done triggers the process of handling sort, adding abandons
+	 * etc, and makes the list read only. Only call when you're ready to use this.
+	 */
 	@Override
 	public String toString() {
 		if (!processed) {
@@ -396,6 +435,10 @@ public class ChoiceDescriptionData<P> implements Cloneable {
 	 * The abandon option will be added at the end of the list
 	 * 
 	 * Default text will be added as the abandon option.
+	 * 
+	 * @param abandonIsDefault if true the abandon option will be the default option
+	 *                         (possibly overiding a previous one) if false the
+	 *                         default won't be set
 	 */
 	public void addAbandonOption(boolean abandonIsDefault) {
 		addAbandonOption(ABANDON_TEXT, false, abandonIsDefault);
@@ -410,9 +453,15 @@ public class ChoiceDescriptionData<P> implements Cloneable {
 	 * code may be unhappy it will cause the getParam(length()) to return null.
 	 * 
 	 * The abandon option will be added at the end of the list if addFirst is false
-	 * or the begining if it's true
+	 * or the beginning if it's true
 	 * 
 	 * Default text will be added as the abandon option.
+	 * 
+	 * @param addFirst         if true the abandon option will be the first entry in
+	 *                         the choices, if false it will be added at the end
+	 * @param abandonIsDefault if true the abandon option will be the default option
+	 *                         (possibly overiding a previous one) if false the
+	 *                         default won't be set
 	 */
 	public void addAbandonOption(boolean addFirst, boolean abandonIsDefault) {
 		addAbandonOption(ABANDON_TEXT, addFirst, abandonIsDefault);
@@ -424,7 +473,9 @@ public class ChoiceDescriptionData<P> implements Cloneable {
 	 * 
 	 * The text you provide will be used as the abandon text
 	 * 
-	 * @param abandonText
+	 * @param abandonText the text to use for the abandon option
+	 * @param addFirst    if true the abandon option will be the first entry in the
+	 *                    choices, if false it will be added at the end
 	 */
 	public void addAbandonOption(String abandonText, boolean addFirst) {
 		addAbandonOption(abandonText, addFirst, false);
@@ -442,7 +493,7 @@ public class ChoiceDescriptionData<P> implements Cloneable {
 	 * 
 	 * The abandon option is not set to the default
 	 * 
-	 * @param abandonText
+	 * @param abandonText the text to use for the abandon option
 	 */
 	public void addAbandonOption(String abandonText) {
 		addAbandonOption(abandonText, false, false);
@@ -464,6 +515,14 @@ public class ChoiceDescriptionData<P> implements Cloneable {
 	 * 
 	 * Only one abandon options is allowed and doing so "freezes" the data
 	 * structure, so you can't add additional entries.
+	 * 
+	 * If not already done triggers the process of handling sort, adding abandons
+	 * etc, and makes the list read only. Only call when you're ready to use this.
+	 * 
+	 * @param abandonText      the text to use for the abandon option
+	 * @param addFirst         where to add the abandon option
+	 * @param abandonIsDefault if the abandon option is the default choice
+	 * 
 	 */
 	public void addAbandonOption(String abandonText, boolean addFirst, boolean abandonIsDefault) {
 		if (processed) {
@@ -488,10 +547,20 @@ public class ChoiceDescriptionData<P> implements Cloneable {
 		}
 	}
 
+	/**
+	 * gets the default option
+	 * 
+	 * @return the default option (if one has been set) null if not
+	 */
 	public ChoiceDescription<P> getDefaultOption() {
 		return defaultOption;
 	}
 
+	/**
+	 * gets the number of the default option
+	 * 
+	 * @return the index of the default option (is set) null if not
+	 */
 	public Integer getDefaultOptionNumber() {
 		return defaultOptionInt;
 	}
@@ -503,8 +572,8 @@ public class ChoiceDescriptionData<P> implements Cloneable {
 	 * and if there is and existing choice but no choice description matching the
 	 * call argument is found the existing option will be set to null
 	 * 
-	 * @param cd
-	 * @return
+	 * @param cd the default option to set
+	 * @return the default option
 	 */
 	public ChoiceDescription<P> setDefaultByChoiceDescription(ChoiceDescription<P> cd) {
 		defaultOption = choiceDescriptionIsPresent(cd) ? cd : null;
@@ -514,8 +583,8 @@ public class ChoiceDescriptionData<P> implements Cloneable {
 	/**
 	 * Sets the choice description at the specified index to be the default
 	 * 
-	 * @param cd
-	 * @param index
+	 * @param index the index of the option to use as the default
+	 * @return the option that was set
 	 */
 	public ChoiceDescription<P> setDefaultByIndex(Integer index) {
 		defaultOption = index == null ? null : getChoiceDescription(index);
@@ -529,8 +598,8 @@ public class ChoiceDescriptionData<P> implements Cloneable {
 	 * override this, and if there is and existing choice but no choice description
 	 * matching the call argument is found the existing option will be set to null
 	 * 
-	 * @param cd
-	 * @return
+	 * @param option the name of the option to set as the default
+	 * @return the option that was set as the default
 	 */
 	public ChoiceDescription<P> setDefaultByOption(String option) {
 		defaultOption = option == null ? null : locateChoiceDescriptionByOptionString(option);
@@ -544,14 +613,20 @@ public class ChoiceDescriptionData<P> implements Cloneable {
 	 * override this, and if there is and existing choice but no choice description
 	 * matching the call argument is found the existing option will be set to null
 	 * 
-	 * @param cd
-	 * @return
+	 * @param param the param to use to locate the option to make the default
+	 * @return the option that was set as the default
 	 */
 	public ChoiceDescription<P> setDefaultByParam(P param) {
 		defaultOption = param == null ? null : locateChoiceDescriptionByParam(param);
 		return defaultOption;
 	}
 
+	/**
+	 * check if an option is in the list
+	 * 
+	 * @param cd the option to check
+	 * @return true if it is present, false if not
+	 */
 	public boolean choiceDescriptionIsPresent(ChoiceDescription<P> cd) {
 		return locateChoiceDescriptionIndexByChoiceDescription(cd) != null;
 	}
@@ -561,10 +636,8 @@ public class ChoiceDescriptionData<P> implements Cloneable {
 	 * the equals method, so in principle if there are multiple descriptions that
 	 * match only the first is returned.
 	 * 
-	 * Note that
-	 * 
-	 * @param cd
-	 * @return
+	 * @param cd the option to look for
+	 * @return the index of the option (or null if not present)
 	 */
 	public Integer locateChoiceDescriptionIndexByChoiceDescription(ChoiceDescription<P> cd) {
 		for (int i = 0; i < choiceDescriptions.size(); i++) {
@@ -581,9 +654,9 @@ public class ChoiceDescriptionData<P> implements Cloneable {
 	 * choice descriptions. This used the String equals method. If there are
 	 * multiple matches with the same option this will ONLY find the first match.
 	 * 
-	 * @param option
+	 * @param option the option string to check for
 	 * 
-	 * @return
+	 * @return the index of the option or null if not present
 	 */
 	public Integer locateChoiceDescriptionIndexByOptionString(String option) {
 		for (int i = 0; i < choiceDescriptions.size(); i++) {
@@ -600,9 +673,8 @@ public class ChoiceDescriptionData<P> implements Cloneable {
 	 * This used the String equals method. If there are multiple matches with the
 	 * same option this will ONLY find the first match.
 	 * 
-	 * @param option
-	 * 
-	 * @return
+	 * @param option the option string of the option to check for
+	 * @return the option if present or null if not
 	 */
 	public ChoiceDescription<P> locateChoiceDescriptionByOptionString(String option) {
 		for (int i = 0; i < choiceDescriptions.size(); i++) {
@@ -619,9 +691,8 @@ public class ChoiceDescriptionData<P> implements Cloneable {
 	 * descriptions. This used the param's equals method. If there are multiple
 	 * matches with the same option this will ONLY find the first match.
 	 * 
-	 * @param option
-	 * 
-	 * @return
+	 * @param param the param to be used to check for the option *
+	 * @return the index of the option if present or null if not
 	 */
 	public Integer locateChoiceDescriptionIndexByParam(P param) {
 		for (int i = 0; i < choiceDescriptions.size(); i++) {
@@ -638,9 +709,8 @@ public class ChoiceDescriptionData<P> implements Cloneable {
 	 * the param's equals method. If there are multiple matches with the same option
 	 * this will ONLY find the first match.
 	 * 
-	 * @param option
-	 * 
-	 * @return
+	 * @param param the param to be used to locate the option
+	 * @return the chosen option if present or null if not
 	 */
 	public ChoiceDescription<P> locateChoiceDescriptionByParam(P param) {
 		for (int i = 0; i < choiceDescriptions.size(); i++) {
@@ -651,6 +721,14 @@ public class ChoiceDescriptionData<P> implements Cloneable {
 		return null;
 	}
 
+	/**
+	 * scan all of the options and get their choice strings, combine them and return
+	 * 
+	 * If not already done triggers the process of handling sort, adding abandons
+	 * etc, and makes the list read only. Only call when you're ready to use this.
+	 * 
+	 * @return a string representing the choices for display
+	 */
 	public String getChoicesString() {
 		process();
 		String processedPrompt = "";

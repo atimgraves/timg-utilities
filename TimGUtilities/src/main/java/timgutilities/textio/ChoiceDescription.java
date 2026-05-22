@@ -1,4 +1,4 @@
-/*Copyright (c) 2023 Tim Graves.
+/*Copyright (c) 2026 Tim Graves.
 
 The Universal Permissive License (UPL), Version 1.0
 
@@ -56,60 +56,170 @@ package timgutilities.textio;
  * Additionally this can be a separator - in this case it's printed out by the
  * choice routines, but is not selectable.
  * 
- * @param <P>
+ * @param <P> If using the ChoiceDescription to hold an object (for example when
+ *            listing directory entries) then P represents the object type is is
+ *            holding
  */
 public class ChoiceDescription<P> implements Comparable<ChoiceDescription<?>> {
 
+	/**
+	 * Used as a default for the description and additional fields if they are not
+	 * specified
+	 */
 	public final static String EMPTY_TEXT = "";
+	/**
+	 * Used by getText if the results should be separated
+	 */
 	public final static String FIELD_SEPARATOR = ", ";
 	private String option, description, additional;
 	private boolean separatorEntry = false;
 	private P param;
 
+	/**
+	 * Create an instance only containing an option. The description, additional are
+	 * set to EMPTY_STRING and param is set to null
+	 * 
+	 * @param option the text of the option
+	 */
 	public ChoiceDescription(String option) {
 		this(option, null, null, false, null);
 	}
 
+	/**
+	 * Create an instance only containing an option and description. The additional
+	 * is set to EMPTY_STRING and param is set to null
+	 * 
+	 * @param option      the text of the option
+	 * @param description the text of the description
+	 */
 	public ChoiceDescription(String option, String description) {
 		this(option, description, null, false, null);
 	}
 
+	/**
+	 * Create an instance only containing an option, description and additional. The
+	 * param is set to null
+	 * 
+	 * @param option      the text of the option
+	 * @param description the text of the description
+	 * @param additional  the text of the additional field
+	 */
 	public ChoiceDescription(String option, String description, String additional) {
 		this(option, description, additional, false, null);
 	}
 
+	/**
+	 * Create an instance only containing an option. The description, additional are
+	 * set to EMPTY_STRING and param is set to null
+	 * 
+	 * @param option         the text of the option
+	 * @param separatorEntry if true this will be marked as a separator, and the
+	 *                       chooser will display it but not let it be selected
+	 */
 	public ChoiceDescription(String option, boolean separatorEntry) {
 		this(option, null, null, separatorEntry, null);
 	}
 
+	/**
+	 * Create an instance only containing an option and description. The additional
+	 * is set to EMPTY_STRING and param is set to null
+	 * 
+	 * @param option         the text of the option
+	 * @param description    the text of the description
+	 * @param separatorEntry if true this will be marked as a separator, and the
+	 *                       chooser will display it but not let it be selected
+	 */
 	public ChoiceDescription(String option, String description, boolean separatorEntry) {
 		this(option, description, null, separatorEntry, null);
 	}
 
+	/**
+	 * Create an instance only containing an option, description and additional. The
+	 * param is set to null
+	 * 
+	 * @param option         the text of the option
+	 * @param description    the text of the description
+	 * @param additional     the text of the additional field
+	 * @param separatorEntry if true this will be marked as a separator, and the
+	 *                       chooser will display it but not let it be selected
+	 */
 	public ChoiceDescription(String option, String description, String additional, boolean separatorEntry) {
 		this(option, description, additional, separatorEntry, null);
 	}
 
+	/**
+	 * Create an instance containing an option and associated parameter. The
+	 * description, additional are set to EMPTY_STRING.
+	 * 
+	 * @param option the text of the option
+	 * @param param  the param to associate with this option
+	 */
 	public ChoiceDescription(String option, P param) {
 		this(option, null, null, false, param);
 	}
 
+	/**
+	 * Create an instance containing an option, description and associated
+	 * parameter. The additional is set to EMPTY_STRING.
+	 * 
+	 * @param option      the text of the option
+	 * @param description the text of the description
+	 * @param param       the param to associate with this option
+	 */
 	public ChoiceDescription(String option, String description, P param) {
 		this(option, description, null, false, param);
 	}
 
+	/**
+	 * Create an instance containing an option, description, additional and
+	 * associated parameter.
+	 * 
+	 * @param option      the text of the option
+	 * @param description the text of the description
+	 * @param additional  the text of the description
+	 * @param param       the param to associate with this option
+	 */
 	public ChoiceDescription(String option, String description, String additional, P param) {
 		this(option, description, additional, false, param);
 	}
 
+	/**
+	 * Create an instance containing an option and param. The description,
+	 * additional are set to EMPTY_STRING
+	 * 
+	 * @param option         the text of the option
+	 * @param separatorEntry if true this will be marked as a separator, and the
+	 *                       chooser will display it but not let it be selected
+	 * @param param          the param to associate with this option
+	 */
 	public ChoiceDescription(String option, boolean separatorEntry, P param) {
 		this(option, null, null, separatorEntry, param);
 	}
 
+	/**
+	 * Create an instance containing an option, description and param. The
+	 * additional is set to EMPTY_STRING
+	 * 
+	 * @param option         the text of the option
+	 * @param description    the text of the description
+	 * @param separatorEntry if true this will be marked as a separator, and the
+	 *                       chooser will display it but not let it be selected
+	 * @param param          the param to associate with this option
+	 */
 	public ChoiceDescription(String option, String description, boolean separatorEntry, P param) {
 		this(option, description, null, separatorEntry, param);
 	}
 
+	/**
+	 * Create an instance containing an option, description, additional and param.
+	 * 
+	 * @param option         the text of the option
+	 * @param description    the text of the description
+	 * @param additional     the text of the additional
+	 * @param separatorEntry if true this will be marked as a separator, and the
+	 *                       chooser will display it but not let it be selected
+	 * @param param          the param to associate with this option
+	 */
 	public ChoiceDescription(String option, String description, String additional, boolean separatorEntry, P param) {
 		super();
 		if (option == null) {
@@ -123,13 +233,21 @@ public class ChoiceDescription<P> implements Comparable<ChoiceDescription<?>> {
 	}
 
 	/**
-	 * @return the option
+	 * Gets the value of the option for this ChoiceDescription (usually this is the
+	 * string that will be displayed when using the chooser)
+	 * 
+	 * @return the option test, for display when choosing an option of potentially
+	 *         to determin the option choice (e.g. if you're selecting an ENUM based
+	 *         on the possible value names)
 	 */
 	public String getOption() {
 		return option;
 	}
 
 	/**
+	 * Gets the optional description field, for example you may want to provide a
+	 * description of an option
+	 * 
 	 * @return the description
 	 */
 	public String getDescription() {
@@ -137,6 +255,8 @@ public class ChoiceDescription<P> implements Comparable<ChoiceDescription<?>> {
 	}
 
 	/**
+	 * Gets any optional additional information you have chosen to provide
+	 * 
 	 * @return the additional
 	 */
 	public String getAdditional() {
@@ -156,11 +276,15 @@ public class ChoiceDescription<P> implements Comparable<ChoiceDescription<?>> {
 
 	/**
 	 * returns the "display" text, if separateFields it true then the output is
-	 * split by the FIELD_SEPARATOR< if it's false then the option, description and
+	 * split by the FIELD_SEPARATOR, if it's false then the option, description and
 	 * additional are just concatenated together
 	 * 
-	 * @param separateFields
-	 * @return
+	 * @param separateFields if true the resulting string will have the
+	 *                       FIELD_SEPARATOR inserted between them as they are
+	 *                       concatenated, if false they will just be concatenated.
+	 *                       This makes it easier to have option, description,
+	 *                       additional if needed in the choice output
+	 * @return text representing the option, description and additional data
 	 */
 	public String getData(boolean separateFields) {
 		if (separateFields) {
@@ -172,18 +296,30 @@ public class ChoiceDescription<P> implements Comparable<ChoiceDescription<?>> {
 	}
 
 	/**
-	 * @return the param
+	 * Gets the optional param object, this allows you to easily associate an object
+	 * with a choice, enabling the object to be easily determined based on a
+	 * particular choice
+	 * 
+	 * @return the param you may have specified to be associated with this choice
 	 */
 	public P getParam() {
 		return param;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Comparable#compareTo()
+	 */
 	@Override
 	public int compareTo(ChoiceDescription<?> o) {
 		return option.compareTo(o.option);
 	}
 
 	/**
+	 * If this choice is being provided to separate groups of options, then this can
+	 * be used to determine that this is option cannot be selected
+	 * 
 	 * @return the separatorEntry
 	 */
 	public boolean isSeparatorEntry() {

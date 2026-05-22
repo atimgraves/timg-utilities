@@ -1,4 +1,4 @@
-/*Copyright (c) 2025 Tim Graves.
+/*Copyright (c) 2026 Tim Graves.
 
 The Universal Permissive License (UPL), Version 1.0
 
@@ -80,8 +80,32 @@ import timgutilities.textio.DirectoryEntry.Type;
  * together simple test code before it's then converted into a proper client.
  */
 public class TextIOUtils {
-	public final static String DEFAULT_PAUSE_STRING = "Please press enter or return to continue";
+
+	private TextIOUtils() {
+		throw new IllegalCallerException(
+				"TextIOUtils is a utility class and shoudl not be constructed, only used statically");
+	}
+
+	private static String defaltPauseString = "Please press enter or return to continue";
 	private static BufferedReader br;
+
+	/**
+	 * Lets you set the default string to be displayed when pausing
+	 * 
+	 * @param newDefaultPauseString the new string
+	 */
+	public static void setDefaultPauseString(String newDefaultPauseString) {
+		defaltPauseString = newDefaultPauseString;
+	}
+
+	/**
+	 * gets the default pause string
+	 * 
+	 * @return the current default pause string
+	 */
+	public static String getDefaultPauseString() {
+		return defaltPauseString;
+	}
 
 	/**
 	 * If needed setup the appropriate buffered reader on Standard-in
@@ -93,23 +117,26 @@ public class TextIOUtils {
 	}
 
 	/**
-	 * Output text in a manner that workswith prompts form the input routines
+	 * Output text in a manner that is compatible with prompts from the input
+	 * routines
 	 * 
-	 * @param output
+	 * @param output the text to output
 	 */
 	public static void doOutput(String output) {
 		System.out.println(output);
 	}
 
 	/**
-	 * Waits for the user tp press return - useful if you need to allow for
+	 * Waits for the user to press return - useful if you need to allow for
 	 * something in a separate environment to complete (e.g. the provisioning of a
-	 * service in a cloud)
+	 * service in a cloud) Displays the defaultPauseString to let the user know they
+	 * need to do something
 	 * 
-	 * @throws IOException
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
 	 */
 	public static void pauseBeforeProgressing() throws IOException {
-		pauseBeforeProgressing(DEFAULT_PAUSE_STRING);
+		pauseBeforeProgressing(defaltPauseString);
 	}
 
 	/**
@@ -117,8 +144,10 @@ public class TextIOUtils {
 	 * you need to allow for something in a separate environment to complete (e.g.
 	 * the provisioning of a service in a cloud)
 	 * 
-	 * @param prompt
-	 * @throws IOException
+	 * @param prompt the prompt to use when asking for input
+	 * 
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
 	 */
 	public static void pauseBeforeProgressing(String prompt) throws IOException {
 		getString(prompt, "", true);
@@ -128,9 +157,10 @@ public class TextIOUtils {
 	 * Outputs the prompt and then waits for the user to enter zero or more
 	 * characters which are then returned.
 	 * 
-	 * @param prompt
-	 * @return
-	 * @throws IOException
+	 * @param prompt the prompt to use when asking for input
+	 * @return the text that was input
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
 	 */
 	public static String getString(String prompt) throws IOException {
 		return getString(prompt, (String) null, false);
@@ -142,10 +172,11 @@ public class TextIOUtils {
 	 * return the default value, if there is not default value provided pressing
 	 * return results in a notice that input is required
 	 * 
-	 * @param prompt
-	 * @param defaultValue
-	 * @return
-	 * @throws IOException
+	 * @param prompt       the prompt to use when asking for input
+	 * @param defaultValue a default value to return if the user just presses return
+	 * @return the entered text or the defaultValue if they just pressed return
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
 	 */
 	public static String getString(String prompt, String defaultValue) throws IOException {
 		return getString(prompt, defaultValue, false);
@@ -159,11 +190,17 @@ public class TextIOUtils {
 	 * is required, if allowEmptyInput is true and the user just presses return the
 	 * the empty string is returned
 	 * 
-	 * @param prompt
-	 * @param defaultValue
-	 * @param allowEmptyInput
-	 * @return
-	 * @throws IOException
+	 * @param prompt          the prompt to use when asking for input
+	 * @param defaultValue    a default value to return if the user just presses
+	 *                        return
+	 * @param allowEmptyInput if true and there is no default if the user presses
+	 *                        return the method will return an empty string, if
+	 *                        false and there is no default the users is prompted to
+	 *                        enter input
+	 * @return the entered text or the defaultValue / empty string if they just
+	 *         pressed return
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
 	 */
 	public static String getString(String prompt, String defaultValue, boolean allowEmptyInput) throws IOException {
 
@@ -197,10 +234,12 @@ public class TextIOUtils {
 	 * or n then the user is re-asked for input. If the input is empty then the
 	 * defaultValue is returned
 	 * 
-	 * @param prompt
-	 * @param defaultValue
-	 * @return
-	 * @throws IOException
+	 * @param prompt       the prompt to use when asking for input
+	 * @param defaultValue a default value to return if the user just presses return
+	 * @return the boolean value of true if they entered y/Y and false if they
+	 *         entered n/N or the default if they just pressed return
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
 	 */
 	public static boolean getYN(String prompt, boolean defaultValue) throws IOException {
 		prompt = prompt + "(y/n)";
@@ -221,9 +260,11 @@ public class TextIOUtils {
 	 * is entered then true is returned, if n then false, if the input is neither y
 	 * or n then the user is re-asked for input.
 	 * 
-	 * @param prompt
-	 * @return
-	 * @throws IOException
+	 * @param prompt the prompt to use when asking for input
+	 * @return the boolean value of true if they entered y/Y and false if they
+	 *         entered n/N
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
 	 */
 	public static boolean getYN(String prompt) throws IOException {
 		prompt = prompt + "(y/n)";
@@ -247,7 +288,7 @@ public class TextIOUtils {
 	 * The user is prompted to enter a number representing the command they want to
 	 * run, if the quit option is chosen (see insertQuit above) then the user is
 	 * asked to confirm they want to quit the loop and the method will return. The
-	 * RunnableCommands runable is called. If the runnable throws an exception it's
+	 * RunnableCommands runnable is called. If the runnable throws an exception it's
 	 * trapped and displayed as output.
 	 * 
 	 * Once the runnable command has been completed the text output it returns is
@@ -259,12 +300,14 @@ public class TextIOUtils {
 	 * sequence returns to the start and the options are re-output and the loop
 	 * continues.
 	 * 
-	 * If the user choses the quit option they weiio
+	 * If the user chooses the quit option they will be asked to confirm before this
+	 * method exits the loop and returns
 	 * 
-	 * @param prompt
-	 * @param runableCommands
-	 * @param insertQuit
-	 * @throws IOException
+	 * @param prompt          the prompt to use when asking for input
+	 * @param runableCommands the list of commands to offer
+	 * @param insertQuit      if true a quit option will be added
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
 	 */
 	public static void selectAndRunLoop(String prompt, RunnableCommand[] runableCommands, boolean insertQuit)
 			throws IOException {
@@ -292,13 +335,15 @@ public class TextIOUtils {
 	 * sequence returns to the start and the options are re-output and the loop
 	 * continues.
 	 * 
-	 * If the user choses the quit option they weiio
+	 * If the user chooses the quit option and confirmQuit is true they will be
+	 * asked to confirm before this method exits the loop and returns
 	 * 
-	 * @param prompt
-	 * @param runableCommands
-	 * @param insertQuit
-	 * @param confirmQuit
-	 * @throws IOException
+	 * @param prompt          the prompt to use when asking for input
+	 * @param runableCommands the list of commands to offer
+	 * @param insertQuit      if true a quit option will be added
+	 * @param confirmQuit     if true then the user has to confirm the quit
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
 	 */
 	public static void selectAndRunLoop(String prompt, RunnableCommand[] runableCommands, boolean insertQuit,
 			boolean confirmQuit) throws IOException {
@@ -327,14 +372,19 @@ public class TextIOUtils {
 	 * sequence returns to the start and the options are re-output and the loop
 	 * continues.
 	 * 
-	 * If the user choses the quit option they weiio
 	 * 
-	 * @param prompt
-	 * @param runableCommands
-	 * @param insertQuit
-	 * @param confirmQuit
-	 * @param quitFirst
-	 * @throws IOException
+	 * If the user chooses the quit option and confirmQuit is true they will be
+	 * asked to confirm before this method exits the loop and returns
+	 * 
+	 * @param prompt          the prompt to use when asking for input
+	 * @param runableCommands the list of commands to offer
+	 * @param insertQuit      if true a quit option will be added
+	 * @param confirmQuit     if true then the user has to confirm the quit
+	 * @param quitFirst       if true then the quit option will be inserted at the
+	 *                        start of the commands list (option 0) if false it will
+	 *                        be at the end.
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
 	 */
 	public static void selectAndRunLoop(String prompt, RunnableCommand[] runableCommands, boolean insertQuit,
 			boolean confirmQuit, boolean quitFirst) throws IOException {
@@ -377,19 +427,23 @@ public class TextIOUtils {
 	}
 
 	/**
-	 * Displays the prompt, then the strings int he choice description data entries.
+	 * Displays the prompt, then the strings in the choice description data entries.
 	 * The user is prompted to enter an integer representing the choice which it
 	 * then returned to the caller if it represents one of the choices.
 	 * 
-	 * @param prompt
-	 * @param choiceDescriptionData
-	 * @return
-	 * @throws IOException
+	 * @param prompt                the prompt to use when asking for input
+	 * @param choiceDescriptionData the options to be presented, if there is only
+	 *                              one item in the choiceDescriptionData then it
+	 *                              will be automatically selected
+	 * @return the number of the chosen option, note that it's up to the caller to
+	 *         detect if this is a quit or separator
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
 	 */
 
 	public static int getIntChoice(String prompt, ChoiceDescriptionData<?> choiceDescriptionData) throws IOException {
 		if (choiceDescriptionData == null) {
-			throw new IOException("ChoiceDescriptionData cannot be null");
+			throw new IllegalArgumentException("ChoiceDescriptionData cannot be null");
 		}
 		int choicesCount = choiceDescriptionData.length();
 		if (choicesCount == 0) {
@@ -422,10 +476,12 @@ public class TextIOUtils {
 	 * prompted to enter an integer representing the choice which is then returned
 	 * to the caller if it represents one of the choices.
 	 * 
-	 * @param prompt
-	 * @param options
-	 * @return
-	 * @throws IOException
+	 * @param prompt  the prompt to use when asking for input
+	 * @param options the options to be presented, if there is only one item in the
+	 *                options then it will be automatically selected
+	 * @return the chosen String
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
 	 */
 	public static String getStringChoice(String prompt, String options[]) throws IOException {
 		return getStringChoice(prompt, options, -1);
@@ -440,10 +496,14 @@ public class TextIOUtils {
 	 * if defaultValue is non null AND is one of the options then the user can just
 	 * press return instead of entering a number to select it
 	 * 
-	 * @param prompt
-	 * @param options
-	 * @return
-	 * @throws IOException
+	 * @param prompt       the prompt to use when asking for input
+	 * @param options      the options to be presented, if there is only one item in
+	 *                     the options then it will be automatically selected
+	 * @param defaultValue the default value (which must be one of the options) if
+	 *                     the user just presses return
+	 * @return the chosen String
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
 	 */
 	public static String getStringChoice(String prompt, String options[], String defaultValue) throws IOException {
 		ChoiceDescriptionData<?> cdd = new ChoiceDescriptionData<>(options);
@@ -460,10 +520,14 @@ public class TextIOUtils {
 	 * if defaultIndex is between 0 and the mad options size then the user can just
 	 * press return instead of entering a number to select it
 	 * 
-	 * @param prompt
-	 * @param options
-	 * @return
-	 * @throws IOException
+	 * @param prompt       the prompt to use when asking for input
+	 * @param options      the options to be presented, if there is only one item in
+	 *                     the options then it will be automatically selected
+	 * @param defaultIndex the index of the default option if the user just presses
+	 *                     return
+	 * @return the chosen String
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
 	 */
 	public static String getStringChoice(String prompt, String options[], Integer defaultIndex) throws IOException {
 		ChoiceDescriptionData<?> cdd = new ChoiceDescriptionData<>(options);
@@ -481,10 +545,12 @@ public class TextIOUtils {
 	 * prompted to enter an integer representing the choice which is then returned
 	 * to the caller if it represents one of the choices.
 	 * 
-	 * @param prompt
-	 * @param options
-	 * @return
-	 * @throws IOException
+	 * @param prompt  the prompt to use when asking for input
+	 * @param options the options to be presented, if there is only one item in the
+	 *                options then it will be automatically selected
+	 * @return the index of the chosen option
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
 	 */
 	public static int getIntChoice(String prompt, String options[]) throws IOException {
 		return getIntChoice(prompt, options, null);
@@ -496,10 +562,13 @@ public class TextIOUtils {
 	 * prompted to enter an integer representing the choice which is then returned
 	 * to the caller if it represents one of the choices.
 	 * 
-	 * @param prompt
-	 * @param options
-	 * @return
-	 * @throws IOException
+	 * 
+	 * @param prompt  the prompt to use when asking for input
+	 * @param options the options to be presented, if there is only one item in the
+	 *                options then it will be automatically selected
+	 * @return the index of the chosen option
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
 	 */
 	public static int getIntChoice(String prompt, Collection<String> options) throws IOException {
 		return getIntChoice(prompt, options, null);
@@ -511,10 +580,14 @@ public class TextIOUtils {
 	 * prompted to enter an integer representing the choice which is then returned
 	 * to the caller if it represents one of the choices.
 	 * 
-	 * @param prompt
-	 * @param options
-	 * @return
-	 * @throws IOException
+	 * @param prompt       the prompt to use when asking for input
+	 * @param options      the options to be presented, if there is only one item in
+	 *                     the options then it will be automatically selected
+	 * @param defaultValue the default value (which must be one of the options) if
+	 *                     the user just presses return
+	 * @return the index of the chosen option
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
 	 */
 	public static int getIntChoice(String prompt, Collection<String> options, String defaultValue) throws IOException {
 		ChoiceDescriptionData<?> cdd = new ChoiceDescriptionData<>(options);
@@ -524,14 +597,18 @@ public class TextIOUtils {
 
 	/**
 	 * 
-	 * Displays the prompt, then the strings in the options collection. The user is
+	 * Displays the prompt, then the strings in the options array. The user is
 	 * prompted to enter an integer representing the choice which is then returned
 	 * to the caller if it represents one of the choices.
 	 * 
-	 * @param prompt
-	 * @param options
-	 * @return
-	 * @throws IOException
+	 * @param prompt       the prompt to use when asking for input
+	 * @param options      the options to be presented, if there is only one item in
+	 *                     the options then it will be automatically selected
+	 * @param defaultValue the default value (which must be one of the options) if
+	 *                     the user just presses return
+	 * @return the index of the chosen option
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
 	 */
 	public static int getIntChoice(String prompt, String options[], String defaultValue) throws IOException {
 		ChoiceDescriptionData<?> cdd = new ChoiceDescriptionData<>(options);
@@ -544,10 +621,12 @@ public class TextIOUtils {
 	 * The user is prompted to enter an integer representing the choice, if it
 	 * represents one of the choices then the string for that choice is returned.
 	 * 
-	 * @param prompt
-	 * @param choiceDescriptionData
-	 * @return
-	 * @throws IOException
+	 * @param prompt                the prompt to use when asking for input
+	 * @param choiceDescriptionData the set of choices to present, if there is only
+	 *                              one option it will be automatically selected
+	 * @return the String provided as the option value for the choice.
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
 	 */
 	public static String getStringChoice(String prompt, ChoiceDescriptionData<?> choiceDescriptionData)
 			throws IOException {
@@ -560,10 +639,12 @@ public class TextIOUtils {
 	 * prompted to enter an integer representing the choice, if it represents one of
 	 * the choices then the string for that choice is returned.
 	 * 
-	 * @param prompt
-	 * @param options
-	 * @return
-	 * @throws IOException
+	 * @param prompt  the prompt to use when asking for input
+	 * @param options the set of choices to present, if there is only one option it
+	 *                will be automatically selected
+	 * @return the String provided as the option value for the choice.
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
 	 */
 	public static String getStringChoice(String prompt, Collection<String> options) throws IOException {
 		return getStringChoice(prompt, options, (String) null);
@@ -578,10 +659,14 @@ public class TextIOUtils {
 	 * If the defaultValue is not null and is one of the options then it will be
 	 * marked as the default and the user can just press return to select it
 	 * 
-	 * @param prompt
-	 * @param options
-	 * @return
-	 * @throws IOException
+	 * @param prompt       the prompt to use when asking for input
+	 * @param options      the set of choices to present, if there is only one
+	 *                     option it will be automatically selected
+	 * @param defaultValue the default value (which must be one of the options) if
+	 *                     the user just presses return
+	 * @return the String provided as the option value for the choice.
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
 	 */
 	public static String getStringChoice(String prompt, Collection<String> options, String defaultValue)
 			throws IOException {
@@ -599,10 +684,14 @@ public class TextIOUtils {
 	 * If the defaultValue is not null and is one of the options then it will be
 	 * marked as the default and the user can just press return to select it
 	 * 
-	 * @param prompt
-	 * @param options
-	 * @return
-	 * @throws IOException
+	 * @param prompt       the prompt to use when asking for input
+	 * @param options      the set of choices to present, if there is only one
+	 *                     option it will be automatically selected
+	 * @param defaultValue the index of the default option if the user just presses
+	 *                     return
+	 * @return the String provided as the option value for the choice.
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
 	 */
 	public static String getStringChoice(String prompt, Collection<String> options, Integer defaultValue)
 			throws IOException {
@@ -612,16 +701,18 @@ public class TextIOUtils {
 	}
 
 	/**
-	 * Displayes the choices in the choide decrription data, askes the user to enter
-	 * a number representing the choice. If the choice is the "abandon" option (See
+	 * Displays the choices in the choice description data, asks the user to enter a
+	 * number representing the choice. If the choice is the "abandon" option (See
 	 * ChoiceDescriptionData.addAbandion methods) then null is returned, otherwise
 	 * returns the object in the parameter for the individual choice descriptions
 	 * 
-	 * @param <T>
-	 * @param prompt
-	 * @param choiceDescriptionData
-	 * @return
-	 * @throws IOException
+	 * @param <T>                   the type of the param object in the choices
+	 * @param prompt                the prompt to use when asking for input
+	 * @param choiceDescriptionData the set of choices to present, if there is only
+	 *                              one option it will be automatically selected
+	 * @return the object provided as the param value for the choice.
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
 	 */
 	public static <T> T getParamChoice(String prompt, ChoiceDescriptionData<T> choiceDescriptionData)
 			throws IOException {
@@ -639,10 +730,11 @@ public class TextIOUtils {
 	 * List the options and ask the user to enter a number representing the option
 	 * they want, the string selected is returned
 	 * 
-	 * @param prompt
-	 * @param options
-	 * @return
-	 * @throws IOException
+	 * @param prompt  the prompt to use when asking for input
+	 * @param options the choices
+	 * @return the chosen option
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
 	 */
 	public static String getString(String prompt, String options[]) throws IOException {
 		return options[getIntChoice(prompt, options)];
@@ -653,9 +745,10 @@ public class TextIOUtils {
 	 * fails then the user is re-prompted, if the parsing succeeds then the entered
 	 * number is returned to the caller
 	 * 
-	 * @param prompt
-	 * @return
-	 * @throws IOException
+	 * @param prompt the prompt to use when asking for input
+	 * @return the entered number
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
 	 */
 	public static int getInt(String prompt) throws IOException {
 		return getInt(prompt, NUM_TYPE.ANY_NUM, Integer.MIN_VALUE, Integer.MAX_VALUE);
@@ -666,9 +759,10 @@ public class TextIOUtils {
 	 * that fails then the user is re-prompted, if the parsing succeeds then the
 	 * entered number is returned to the caller
 	 * 
-	 * @param prompt
-	 * @return
-	 * @throws IOException
+	 * @param prompt the prompt to use when asking for input
+	 * @return the entered number
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
 	 */
 	public static int getIntHex(String prompt) throws IOException {
 		return getIntBase(prompt, NUM_TYPE.ANY_NUM, Integer.MIN_VALUE, Integer.MAX_VALUE, 16);
@@ -679,9 +773,11 @@ public class TextIOUtils {
 	 * that fails then the user is re-prompted, if the parsing succeeds then the
 	 * entered number is returned to the caller
 	 * 
-	 * @param prompt
-	 * @return
-	 * @throws IOException
+	 * @param prompt the prompt to use when asking for input
+	 * @param base   the number base to use (e.g. 2 for binary, 16 for hex)
+	 * @return the entered number
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
 	 */
 	public static int getIntBase(String prompt, int base) throws IOException {
 		return getIntBase(prompt, NUM_TYPE.ANY_NUM, Integer.MIN_VALUE, Integer.MAX_VALUE, base);
@@ -692,12 +788,13 @@ public class TextIOUtils {
 	 * fails then the user is re-prompted, if the parsing succeeds then the entered
 	 * number is returned to the caller.
 	 * 
-	 * If the suer just presses return (no input) then the defaultValue is returned
+	 * If the user just presses return (no input) then the defaultValue is returned
 	 * 
-	 * @param prompt
-	 * @param defaultValue
-	 * @return
-	 * @throws IOException
+	 * @param prompt       the prompt to use when asking for input
+	 * @param defaultValue the default value to use if the user just presses return
+	 * @return the entered number
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
 	 */
 	public static int getInt(String prompt, int defaultValue) throws IOException {
 		return getInt(prompt, NUM_TYPE.ANY_NUM, Integer.MIN_VALUE, Integer.MAX_VALUE, true, defaultValue, 10);
@@ -710,10 +807,11 @@ public class TextIOUtils {
 	 * 
 	 * If the suer just presses return (no input) then the defaultValue is returned
 	 * 
-	 * @param prompt
-	 * @param defaultValue
-	 * @return
-	 * @throws IOException
+	 * @param prompt       the prompt to use when asking for input
+	 * @param defaultValue the default value to use if the user just presses return
+	 * @return the entered number
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
 	 */
 	public static int getIntHex(String prompt, int defaultValue) throws IOException {
 		return getInt(prompt, NUM_TYPE.ANY_NUM, Integer.MIN_VALUE, Integer.MAX_VALUE, true, defaultValue, 16);
@@ -724,12 +822,14 @@ public class TextIOUtils {
 	 * that fails then the user is re-prompted, if the parsing succeeds then the
 	 * entered number is returned to the caller.
 	 * 
-	 * If the suer just presses return (no input) then the defaultValue is returned
+	 * If the user just presses return (no input) then the defaultValue is returned
 	 * 
-	 * @param prompt
-	 * @param defaultValue
-	 * @return
-	 * @throws IOException
+	 * @param prompt       the prompt to use when asking for input
+	 * @param defaultValue the default value to use if the user just presses return
+	 * @param base         the number base to use (e.g. 2 for binary, 16 for hex)
+	 * @return the entered number
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
 	 */
 	public static int getIntBase(String prompt, int defaultValue, int base) throws IOException {
 		return getInt(prompt, NUM_TYPE.ANY_NUM, Integer.MIN_VALUE, Integer.MAX_VALUE, true, defaultValue, base);
@@ -739,32 +839,14 @@ public class TextIOUtils {
 	 * Prompt the user to enter a base 10 integer number relative to the upper /
 	 * lower, if no number is entered then the user is prompted to have another go
 	 * 
-	 * The NUM_TYPE is interpreted as follows, if the restriction is not met then
-	 * the user is prompted for input again. Note that a bit of text explaining the
-	 * restriction is displayed for all NUM_TYPEs except SELECTION which is a
-	 * special case of RANGE intended to be used for entering from a list of
-	 * options.
-	 * 
-	 * ANY_NUM - ignores the lower / upper limits
-	 * 
-	 * AT_OR_ABOVE - input must be >= lower limit, upper limit is ignored
-	 * 
-	 * ABOVE - input must be > lower limit, upper limit is ignored
-	 * 
-	 * AT_OR_BELOW - input must be <= lower limit, upper limit is ignored
-	 * 
-	 * BELOW - input must be < lower limit, upper limit is ignored
-	 * 
-	 * RANGE - input must be >= lowwer limit and <= upper limit
-	 * 
-	 * SELECTION - the same a RANGE, but no restriction text is displayed
-	 * 
-	 * @param prompt
-	 * @param type
-	 * @param lower
-	 * @param upper
-	 * @return
-	 * @throws IOException
+	 * @param prompt the prompt to use when asking for input
+	 * @param type   the type of checking to do see TextIOUtils.NUM_TYPE
+	 * @param lower  if relevant for the type the lower limit for checking
+	 * @param upper  if relevant for the type the upper limit for checking
+	 * @return the entered number
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
+	 * @see TextIOUtils.NUM_TYPE
 	 */
 	public static int getInt(String prompt, NUM_TYPE type, int lower, int upper) throws IOException {
 		return getInt(prompt, type, lower, upper, false, 0, 10);
@@ -774,33 +856,15 @@ public class TextIOUtils {
 	 * Prompt the user to enter a base 10 integer number relative to the upper /
 	 * lower, if no number is entered then the default value is used
 	 * 
-	 * The NUM_TYPE is interpreted as follows, if the restriction is not met then
-	 * the user is prompted for input again. Note that a bit of text explaining the
-	 * restriction is displayed for all NUM_TYPEs except SELECTION which is a
-	 * special case of RANGE intended to be used for entering from a list of
-	 * options.
-	 * 
-	 * ANY_NUM - ignores the lower / upper limits
-	 * 
-	 * AT_OR_ABOVE - input must be >= lower limit, upper limit is ignored
-	 * 
-	 * ABOVE - input must be > lower limit, upper limit is ignored
-	 * 
-	 * AT_OR_BELOW - input must be <= lower limit, upper limit is ignored
-	 * 
-	 * BELOW - input must be < lower limit, upper limit is ignored
-	 * 
-	 * RANGE - input must be >= lowwer limit and <= upper limit
-	 * 
-	 * SELECTION - the same a RANGE, but no restriction text is displayed
-	 * 
-	 * @param prompt
-	 * @param type
-	 * @param lower
-	 * @param upper
-	 * @param defaultValue
-	 * @return
-	 * @throws IOException
+	 * @param prompt       the prompt to use when asking for input
+	 * @param type         the type of checking to do see TextIOUtils.NUM_TYPE
+	 * @param lower        if relevant for the type the lower limit for checking
+	 * @param upper        if relevant for the type the upper limit for checking
+	 * @param defaultValue the default value to use if the user just presses return
+	 * @return the entered number
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
+	 * @see TextIOUtils.NUM_TYPE
 	 */
 	public static int getInt(String prompt, NUM_TYPE type, int lower, int upper, int defaultValue) throws IOException {
 		return getInt(prompt, type, lower, upper, true, defaultValue, 10);
@@ -810,32 +874,13 @@ public class TextIOUtils {
 	 * Prompt the user to enter a base 16 (HEX) integer number relative to the upper
 	 * / lower, if no number is entered then the user is prompted to have another go
 	 * 
-	 * The NUM_TYPE is interpreted as follows, if the restriction is not met then
-	 * the user is prompted for input again. Note that a bit of text explaining the
-	 * restriction is displayed for all NUM_TYPEs except SELECTION which is a
-	 * special case of RANGE intended to be used for entering from a list of
-	 * options.
-	 * 
-	 * ANY_NUM - ignores the lower / upper limits
-	 * 
-	 * AT_OR_ABOVE - input must be >= lower limit, upper limit is ignored
-	 * 
-	 * ABOVE - input must be > lower limit, upper limit is ignored
-	 * 
-	 * AT_OR_BELOW - input must be <= lower limit, upper limit is ignored
-	 * 
-	 * BELOW - input must be < lower limit, upper limit is ignored
-	 * 
-	 * RANGE - input must be >= lowwer limit and <= upper limit
-	 * 
-	 * SELECTION - the same a RANGE, but no restriction text is displayed
-	 * 
-	 * @param prompt
-	 * @param type
-	 * @param lower
-	 * @param upper
-	 * @return
-	 * @throws IOException
+	 * @param prompt the prompt to use when asking for input
+	 * @param type   the type of checking to do see TextIOUtils.NUM_TYPE
+	 * @param lower  if relevant for the type the lower limit for checking
+	 * @param upper  if relevant for the type the upper limit for checking
+	 * @return the entered number
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
 	 */
 	public static int getIntHex(String prompt, NUM_TYPE type, int lower, int upper) throws IOException {
 		return getInt(prompt, type, lower, upper, false, 0, 16);
@@ -845,33 +890,16 @@ public class TextIOUtils {
 	 * Prompt the user to enter a base 16 (HEX) integer number relative to the upper
 	 * / lower, if no number is entered then the default value is used
 	 * 
-	 * The NUM_TYPE is interpreted as follows, if the restriction is not met then
-	 * the user is prompted for input again. Note that a bit of text explaining the
-	 * restriction is displayed for all NUM_TYPEs except SELECTION which is a
-	 * special case of RANGE intended to be used for entering from a list of
-	 * options.
+	 * @param prompt       the prompt to use when asking for input
+	 * @param type         the type of checking to do see TextIOUtils.NUM_TYPE
+	 * @param lower        if relevant for the type the lower limit for checking
+	 * @param upper        if relevant for the type the upper limit for checking
+	 * @param defaultValue the default value to use if the user just presses return
+	 * @return the entered number
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
 	 * 
-	 * ANY_NUM - ignores the lower / upper limits
-	 * 
-	 * AT_OR_ABOVE - input must be >= lower limit, upper limit is ignored
-	 * 
-	 * ABOVE - input must be > lower limit, upper limit is ignored
-	 * 
-	 * AT_OR_BELOW - input must be <= lower limit, upper limit is ignored
-	 * 
-	 * BELOW - input must be < lower limit, upper limit is ignored
-	 * 
-	 * RANGE - input must be >= lowwer limit and <= upper limit
-	 * 
-	 * SELECTION - the same a RANGE, but no restriction text is displayed
-	 * 
-	 * @param prompt
-	 * @param type
-	 * @param lower
-	 * @param upper
-	 * @param defaultValue
-	 * @return
-	 * @throws IOException
+	 * @see TextIOUtils.NUM_TYPE
 	 */
 	public static int getIntHex(String prompt, NUM_TYPE type, int lower, int upper, int defaultValue)
 			throws IOException {
@@ -883,33 +911,15 @@ public class TextIOUtils {
 	 * upper / lower, if no number is entered then the user is prompted to have
 	 * another go
 	 * 
-	 * The NUM_TYPE is interpreted as follows, if the restriction is not met then
-	 * the user is prompted for input again. Note that a bit of text explaining the
-	 * restriction is displayed for all NUM_TYPEs except SELECTION which is a
-	 * special case of RANGE intended to be used for entering from a list of
-	 * options.
-	 * 
-	 * ANY_NUM - ignores the lower / upper limits
-	 * 
-	 * AT_OR_ABOVE - input must be >= lower limit, upper limit is ignored
-	 * 
-	 * ABOVE - input must be > lower limit, upper limit is ignored
-	 * 
-	 * AT_OR_BELOW - input must be <= lower limit, upper limit is ignored
-	 * 
-	 * BELOW - input must be < lower limit, upper limit is ignored
-	 * 
-	 * RANGE - input must be >= lowwer limit and <= upper limit
-	 * 
-	 * SELECTION - the same a RANGE, but no restriction text is displayed
-	 * 
-	 * @param prompt
-	 * @param type
-	 * @param lower
-	 * @param upper
-	 * @param base
-	 * @return
-	 * @throws IOException
+	 * @param prompt the prompt to use when asking for input
+	 * @param type   the type of checking to do see TextIOUtils.NUM_TYPE
+	 * @param lower  if relevant for the type the lower limit for checking
+	 * @param upper  if relevant for the type the upper limit for checking
+	 * @param base   the number base to use (e.g. 2 for binary, 16 for hex)
+	 * @return the entered number
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
+	 * @see TextIOUtils.NUM_TYPE
 	 */
 	public static int getIntBase(String prompt, NUM_TYPE type, int lower, int upper, int base) throws IOException {
 		return getInt(prompt, type, lower, upper, false, 0, base);
@@ -919,34 +929,16 @@ public class TextIOUtils {
 	 * Prompt the user to enter an arbitrary base integer number relative to the
 	 * upper / lower, if no number is entered then the default value is used
 	 * 
-	 * The NUM_TYPE is interpreted as follows, if the restriction is not met then
-	 * the user is prompted for input again. Note that a bit of text explaining the
-	 * restriction is displayed for all NUM_TYPEs except SELECTION which is a
-	 * special case of RANGE intended to be used for entering from a list of
-	 * options.
-	 * 
-	 * ANY_NUM - ignores the lower / upper limits
-	 * 
-	 * AT_OR_ABOVE - input must be >= lower limit, upper limit is ignored
-	 * 
-	 * ABOVE - input must be > lower limit, upper limit is ignored
-	 * 
-	 * AT_OR_BELOW - input must be <= lower limit, upper limit is ignored
-	 * 
-	 * BELOW - input must be < lower limit, upper limit is ignored
-	 * 
-	 * RANGE - input must be >= lower limit and <= upper limit
-	 * 
-	 * SELECTION - the same a RANGE, but no restriction text is displayed
-	 * 
-	 * @param prompt
-	 * @param type
-	 * @param lower
-	 * @param upper
-	 * @param defaultValue
-	 * @param base
-	 * @return
-	 * @throws IOException
+	 * @param prompt       the prompt to use when asking for input
+	 * @param type         the type of checking to do see TextIOUtils.NUM_TYPE
+	 * @param lower        if relevant for the type the lower limit for checking
+	 * @param upper        if relevant for the type the upper limit for checking
+	 * @param defaultValue the default value to use if the user just presses return
+	 * @param base         the number base to use (e.g. 2 for binary, 16 for hex)
+	 * @return the entered number
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
+	 * @see TextIOUtils.NUM_TYPE
 	 */
 	public static int getIntBase(String prompt, NUM_TYPE type, int lower, int upper, int defaultValue, int base)
 			throws IOException {
@@ -959,34 +951,16 @@ public class TextIOUtils {
 	 * is true then the value of the default is displayed after the text describing
 	 * the restriction, if false it is not
 	 * 
-	 * The NUM_TYPE is interpreted as follows, if the restriction is not met then
-	 * the user is prompted for input again. Note that a bit of text explaining the
-	 * restriction is displayed for all NUM_TYPEs except SELECTION which is a
-	 * special case of RANGE intended to be used for entering from a list of
-	 * options.
-	 * 
-	 * ANY_NUM - ignores the lower / upper limits
-	 * 
-	 * AT_OR_ABOVE - input must be >= lower limit, upper limit is ignored
-	 * 
-	 * ABOVE - input must be > lower limit, upper limit is ignored
-	 * 
-	 * AT_OR_BELOW - input must be <= lower limit, upper limit is ignored
-	 * 
-	 * BELOW - input must be < lower limit, upper limit is ignored
-	 * 
-	 * RANGE - input must be >= lowwer limit and <= upper limit
-	 * 
-	 * SELECTION - the same a RANGE, but no restriction text is displayed
-	 * 
-	 * @param prompt
-	 * @param type
-	 * @param lower
-	 * @param upper
-	 * @param useDefault
-	 * @param defaultValue
-	 * @return
-	 * @throws IOException
+	 * @param prompt       the prompt to use when asking for input
+	 * @param type         the type of checking to do see TextIOUtils.NUM_TYPE
+	 * @param lower        if relevant for the type the lower limit for checking
+	 * @param upper        if relevant for the type the upper limit for checking
+	 * @param useDefault   if true offer the defaultValue
+	 * @param defaultValue the default value to use if the user just presses return
+	 * @return the entered number
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
+	 * @see TextIOUtils.NUM_TYPE
 	 */
 	public static int getInt(String prompt, NUM_TYPE type, int lower, int upper, boolean useDefault, int defaultValue)
 			throws IOException {
@@ -999,35 +973,17 @@ public class TextIOUtils {
 	 * useDefault is true then the value of the default is displayed after the text
 	 * describing the restriction, if false it is not
 	 * 
-	 * The NUM_TYPE is interpreted as follows, if the restriction is not met then
-	 * the user is prompted for input again. Note that a bit of text explaining the
-	 * restriction is displayed for all NUM_TYPEs except SELECTION which is a
-	 * special case of RANGE intended to be used for entering from a list of
-	 * options.
-	 * 
-	 * ANY_NUM - ignores the lower / upper limits
-	 * 
-	 * AT_OR_ABOVE - input must be >= lower limit, upper limit is ignored
-	 * 
-	 * ABOVE - input must be > lower limit, upper limit is ignored
-	 * 
-	 * AT_OR_BELOW - input must be <= lower limit, upper limit is ignored
-	 * 
-	 * BELOW - input must be < lower limit, upper limit is ignored
-	 * 
-	 * RANGE - input must be >= lowwer limit and <= upper limit
-	 * 
-	 * SELECTION - the same a RANGE, but no restriction text is displayed
-	 * 
-	 * @param prompt
-	 * @param type
-	 * @param lower
-	 * @param upper
-	 * @param useDefault
-	 * @param defaultValue
-	 * @param base
-	 * @return
-	 * @throws IOException
+	 * @param prompt       the prompt to use when asking for input
+	 * @param type         the type of checking to do see TextIOUtils.NUM_TYPE
+	 * @param lower        if relevant for the type the lower limit for checking
+	 * @param upper        if relevant for the type the upper limit for checking
+	 * @param useDefault   if true offer the defaultValue
+	 * @param defaultValue the default value to use if the user just presses return
+	 * @param base         the number base to use (e.g. 2 for binary, 16 for hex)
+	 * @return the entered number
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
+	 * @see TextIOUtils.NUM_TYPE
 	 */
 	public static int getInt(String prompt, NUM_TYPE type, int lower, int upper, boolean useDefault, int defaultValue,
 			int base) throws IOException {
@@ -1102,66 +1058,83 @@ public class TextIOUtils {
 	}
 
 	/**
-	 * See getInt(prompt) but returns a Long
+	 * Asks the user to enter a long value and returns a Long
 	 * 
-	 * @param prompt
-	 * @return
-	 * @throws IOException
+	 * @param prompt the prompt to use when asking for input
+	 * @return the entered number
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
 	 */
 	public static long getLong(String prompt) throws IOException {
 		return getLong(prompt, NUM_TYPE.ANY_NUM, Long.MIN_VALUE, Long.MAX_VALUE, 10);
 	}
 
 	/**
-	 * See getIntHex(prompt) but returns a Long
+	 * Asks the user to enter a hexadecimal value and returns it as a long
 	 * 
-	 * @param prompt
-	 * @return
-	 * @throws IOException
+	 * @param prompt the prompt to use when asking for input
+	 * @return the entered number
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
 	 */
 	public static long getLongHex(String prompt) throws IOException {
 		return getLongBase(prompt, NUM_TYPE.ANY_NUM, Long.MIN_VALUE, Long.MAX_VALUE, 16);
 	}
 
 	/**
-	 * See getIntBase(prompt) but returns a Long
+	 * Asks the user to enter a number in an arbitrary base (specified by the base
+	 * param) and returns it as a long
 	 * 
-	 * @param prompt
-	 * @return
-	 * @throws IOException
+	 * @param prompt the prompt to use when asking for input
+	 * @param base   the number base to use (e.g. 2 for binary, 16 for hex)
+	 * @return the entered number
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
 	 */
 	public static long getLongBase(String prompt, int base) throws IOException {
 		return getLongBase(prompt, NUM_TYPE.ANY_NUM, Long.MIN_VALUE, Long.MAX_VALUE, base);
 	}
 
 	/**
-	 * See getInt(prompt, defaultValue) but returns a Long
+	 * Asks the user to enter a long value, but if they press return with no input
+	 * returns the default
 	 * 
-	 * @param prompt
-	 * @return
-	 * @throws IOException
+	 * @param prompt       the prompt to use when asking for input
+	 * @param defaultValue the default value to use if the user just presses return
+	 * @return the entered number
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
 	 */
 	public static long getLong(String prompt, long defaultValue) throws IOException {
 		return getLong(prompt, NUM_TYPE.ANY_NUM, Long.MIN_VALUE, Long.MAX_VALUE, true, defaultValue, 10);
 	}
 
 	/**
-	 * See getIntHex(prompt, defaultValue) but returns a Long
+	 * Asks the user to enter a hex value and returns as a long, but if they just
+	 * press return returns the default
 	 * 
-	 * @param prompt
-	 * @return
-	 * @throws IOException
+	 * @param prompt       the prompt to use when asking for input
+	 * @param defaultValue the default value to use if the user just presses return
+	 * @return the entered number
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
 	 */
 	public static long getLongHex(String prompt, long defaultValue) throws IOException {
 		return getLong(prompt, NUM_TYPE.ANY_NUM, Long.MIN_VALUE, Long.MAX_VALUE, true, defaultValue, 16);
 	}
 
 	/**
-	 * See getIntBase(prompt, defaultValue) but returns a Long
 	 * 
-	 * @param prompt
-	 * @return
-	 * @throws IOException
+	 * Asks the user to enter a number in an arbitrary base (specified by the base
+	 * param) and returns it as a long
+	 * 
+	 * @param prompt       the prompt to use when asking for input
+	 * @param base         the base to be used when parsing the input, e.g. 2 for
+	 *                     binary, 9 for octal, 10 for decimal, 16 for hex etc.
+	 * @param defaultValue the default value to use if the user just presses return
+	 * @return the entered number
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
 	 */
 	public static long getLongBase(String prompt, long defaultValue, int base) throws IOException {
 		return getLong(prompt, NUM_TYPE.ANY_NUM, Integer.MIN_VALUE, Integer.MAX_VALUE, true, defaultValue, base);
@@ -1170,12 +1143,14 @@ public class TextIOUtils {
 	/**
 	 * see getInt(prompt, type, lower, upper) but returns a Long
 	 * 
-	 * @param prompt
-	 * @param type
-	 * @param lower
-	 * @param upper
-	 * @return
-	 * @throws IOException
+	 * @param prompt the prompt to use when asking for input
+	 * @param type   the type of checking to do see TextIOUtils.NUM_TYPE
+	 * @param lower  if relevant for the type the lower limit for checking
+	 * @param upper  if relevant for the type the upper limit for checking
+	 * @return the entered number
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
+	 * @see TextIOUtils.NUM_TYPE
 	 */
 	public static long getLong(String prompt, NUM_TYPE type, long lower, long upper) throws IOException {
 		return getLong(prompt, type, lower, upper, false, 0, 10);
@@ -1184,12 +1159,15 @@ public class TextIOUtils {
 	/**
 	 * see getInt(prompt, type, lower, upper, defaultValue) but returns a Long
 	 * 
-	 * @param prompt
-	 * @param type
-	 * @param lower
-	 * @param upper
-	 * @return
-	 * @throws IOException
+	 * @param prompt       the prompt to use when asking for input
+	 * @param type         the type of checking to do see TextIOUtils.NUM_TYPE
+	 * @param lower        if relevant for the type the lower limit for checking
+	 * @param upper        if relevant for the type the upper limit for checking
+	 * @param defaultValue the default value to use if the user just presses return
+	 * @return the entered number
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
+	 * @see TextIOUtils.NUM_TYPE
 	 */
 	public static long getLong(String prompt, NUM_TYPE type, long lower, long upper, long defaultValue)
 			throws IOException {
@@ -1199,12 +1177,14 @@ public class TextIOUtils {
 	/**
 	 * see getIntHex(prompt, type, lower, upper) but returns a Long
 	 * 
-	 * @param prompt
-	 * @param type
-	 * @param lower
-	 * @param upper
-	 * @return
-	 * @throws IOException
+	 * @param prompt the prompt to use when asking for input
+	 * @param type   the type of checking to do see TextIOUtils.NUM_TYPE
+	 * @param lower  if relevant for the type the lower limit for checking
+	 * @param upper  if relevant for the type the upper limit for checking
+	 * @return the entered number
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
+	 * @see TextIOUtils.NUM_TYPE
 	 */
 	public static long getLongHex(String prompt, NUM_TYPE type, long lower, long upper) throws IOException {
 		return getLong(prompt, type, lower, upper, false, 0, 16);
@@ -1213,13 +1193,15 @@ public class TextIOUtils {
 	/**
 	 * see getIntHex(prompt, type, lower, upper, defaultValue) but returns a Long
 	 * 
-	 * @param prompt
-	 * @param type
-	 * @param lower
-	 * @param upper
-	 * @param defaultValue
-	 * @return
-	 * @throws IOException
+	 * @param prompt       the prompt to use when asking for input
+	 * @param type         the type of checking to do see TextIOUtils.NUM_TYPE
+	 * @param lower        if relevant for the type the lower limit for checking
+	 * @param upper        if relevant for the type the upper limit for checking
+	 * @param defaultValue the default value to use if the user just presses return
+	 * @return the entered number
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
+	 * @see TextIOUtils.NUM_TYPE
 	 */
 	public static long getLongHex(String prompt, NUM_TYPE type, long lower, long upper, long defaultValue)
 			throws IOException {
@@ -1229,13 +1211,15 @@ public class TextIOUtils {
 	/**
 	 * see getInt(prompt, type, lower, upper, base) but returns a Long
 	 * 
-	 * @param prompt
-	 * @param type
-	 * @param lower
-	 * @param upper
-	 * @param base
-	 * @return
-	 * @throws IOException
+	 * @param prompt the prompt to use when asking for input
+	 * @param type   the type of checking to do see TextIOUtils.NUM_TYPE
+	 * @param lower  if relevant for the type the lower limit for checking
+	 * @param upper  if relevant for the type the upper limit for checking
+	 * @param base   the number base to use (e.g. 2 for binary, 16 for hex)
+	 * @return the entered number
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
+	 * @see TextIOUtils.NUM_TYPE
 	 */
 	public static long getLongBase(String prompt, NUM_TYPE type, long lower, long upper, int base) throws IOException {
 		return getLong(prompt, type, lower, upper, false, 0, base);
@@ -1245,14 +1229,16 @@ public class TextIOUtils {
 	 * see getIntBase(prompt, type, lower, upper, defaultValue, base) but returns a
 	 * Long
 	 * 
-	 * @param prompt
-	 * @param type
-	 * @param lower
-	 * @param upper
-	 * @param defaultValue
-	 * @param base
-	 * @return
-	 * @throws IOException
+	 * @param prompt       the prompt to use when asking for input
+	 * @param type         the type of checking to do see TextIOUtils.NUM_TYPE
+	 * @param lower        if relevant for the type the lower limit for checking
+	 * @param upper        if relevant for the type the upper limit for checking
+	 * @param base         the number base to use (e.g. 2 for binary, 16 for hex)
+	 * @param defaultValue the default value to use if the user just presses return
+	 * @return the entered number
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
+	 * @see TextIOUtils.NUM_TYPE
 	 */
 	public static long getLongBase(String prompt, NUM_TYPE type, long lower, long upper, long defaultValue, int base)
 			throws IOException {
@@ -1263,14 +1249,16 @@ public class TextIOUtils {
 	 * see getIntBase(prompt, type, lower, upper, useDefault, useDefault,
 	 * defaultValue) but returns a Long
 	 * 
-	 * @param prompt
-	 * @param type
-	 * @param lower
-	 * @param upper
-	 * @param useDefault
-	 * @param defaultValue
-	 * @return
-	 * @throws IOException
+	 * @param prompt       the prompt to use when asking for input
+	 * @param type         the type of checking to do see TextIOUtils.NUM_TYPE
+	 * @param lower        if relevant for the type the lower limit for checking
+	 * @param upper        if relevant for the type the upper limit for checking
+	 * @param useDefault   if true offer the default value
+	 * @param defaultValue the default value to use if the user just presses return
+	 * @return the entered number
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
+	 * @see TextIOUtils.NUM_TYPE
 	 */
 	public static long getLong(String prompt, NUM_TYPE type, long lower, long upper, boolean useDefault,
 			long defaultValue) throws IOException {
@@ -1281,14 +1269,17 @@ public class TextIOUtils {
 	 * see getLongBase(prompt, type, lower, upper, useDefault, defaultValue, base)
 	 * but returns a Long
 	 * 
-	 * @param prompt
-	 * @param type
-	 * @param lower
-	 * @param upper
-	 * @param defaultValue
-	 * @param base
-	 * @return
-	 * @throws IOException
+	 * @param prompt       the prompt to use when asking for input
+	 * @param type         the type of checking to do see TextIOUtils.NUM_TYPE
+	 * @param lower        if relevant for the type the lower limit for checking
+	 * @param upper        if relevant for the type the upper limit for checking
+	 * @param useDefault   if true offer the default value
+	 * @param defaultValue the default value to use if the user just presses return
+	 * @param base         the number base to use (e.g. 2 for binary, 16 for hex)
+	 * @return the entered number
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
+	 * @see TextIOUtils.NUM_TYPE
 	 */
 	public static long getLong(String prompt, NUM_TYPE type, long lower, long upper, boolean useDefault,
 			long defaultValue, int base) throws IOException {
@@ -1364,9 +1355,10 @@ public class TextIOUtils {
 	/**
 	 * see getInt(prompt) but returns a double
 	 * 
-	 * @param prompt
-	 * @return
-	 * @throws IOException
+	 * @param prompt the prompt to use when asking for input
+	 * @return the entered number
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
 	 */
 	public static double getDouble(String prompt) throws IOException {
 		return getDouble(prompt, NUM_TYPE.ANY_NUM, Double.MIN_VALUE, Double.MAX_VALUE);
@@ -1375,9 +1367,11 @@ public class TextIOUtils {
 	/**
 	 * See getInt(prompt, defaultValue) but returns a double
 	 * 
-	 * @param prompt
-	 * @return
-	 * @throws IOException
+	 * @param prompt       the prompt to use when asking for input
+	 * @param defaultValue the default value to use if the user just presses return
+	 * @return the entered number
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
 	 */
 	public static double getDouble(String prompt, double defaultValue) throws IOException {
 		return getDouble(prompt, NUM_TYPE.ANY_NUM, Double.MIN_VALUE, Double.MAX_VALUE, true, defaultValue);
@@ -1386,12 +1380,14 @@ public class TextIOUtils {
 	/**
 	 * see getInt(prompt, type, lower, upper) but returns a double
 	 * 
-	 * @param prompt
-	 * @param type
-	 * @param lower
-	 * @param upper
-	 * @return
-	 * @throws IOException
+	 * @param prompt the prompt to use when asking for input
+	 * @param type   the type of checking to do see TextIOUtils.NUM_TYPE
+	 * @param lower  if relevant for the type the lower limit for checking
+	 * @param upper  if relevant for the type the upper limit for checking
+	 * @return the entered number
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
+	 * @see TextIOUtils.NUM_TYPE
 	 */
 	public static double getDouble(String prompt, NUM_TYPE type, double lower, double upper) throws IOException {
 		return getDouble(prompt, type, lower, upper, false, 0.0);
@@ -1400,13 +1396,15 @@ public class TextIOUtils {
 	/**
 	 * see getInt(prompt, type, lower, upper, defaultValue) but returns a double
 	 * 
-	 * @param prompt
-	 * @param type
-	 * @param lower
-	 * @param upper
-	 * @param defaultValue
-	 * @return
-	 * @throws IOException
+	 * @param prompt       the prompt to use when asking for input
+	 * @param type         the type of checking to do see TextIOUtils.NUM_TYPE
+	 * @param lower        if relevant for the type the lower limit for checking
+	 * @param upper        if relevant for the type the upper limit for checking
+	 * @param defaultValue the default value to use if the user just presses return
+	 * @return the entered number
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
+	 * @see TextIOUtils.NUM_TYPE
 	 */
 	public static double getDouble(String prompt, NUM_TYPE type, double lower, double upper, double defaultValue)
 			throws IOException {
@@ -1417,14 +1415,16 @@ public class TextIOUtils {
 	 * see getIntBase(prompt, type, lower, upper, useDefault, useDefault,
 	 * defaultValue) but returns a double
 	 * 
-	 * @param prompt
-	 * @param type
-	 * @param lower
-	 * @param upper
-	 * @param useDefault
-	 * @param defaultValue
-	 * @return
-	 * @throws IOException
+	 * @param prompt       the prompt to use when asking for input
+	 * @param type         the type of checking to do see TextIOUtils.NUM_TYPE
+	 * @param lower        if relevant for the type the lower limit for checking
+	 * @param upper        if relevant for the type the upper limit for checking
+	 * @param useDefault   if true offer the default value
+	 * @param defaultValue the default value to use if the user just presses return
+	 * @return the entered number
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
+	 * @see TextIOUtils.NUM_TYPE
 	 */
 	public static double getDouble(String prompt, NUM_TYPE type, double lower, double upper, boolean useDefault,
 			double defaultValue) throws IOException {
@@ -1494,51 +1494,67 @@ public class TextIOUtils {
 	}
 
 	/**
-	 * defined the various operations when entering numbers with upper / lowers.
-	 * 
-	 * These enum values are interpreted as follows :
-	 * 
-	 * ANY_NUM - ignores the lower / upper limits
-	 * 
-	 * AT_OR_ABOVE - input must be >= lower limit, upper limit is ignored
-	 * 
-	 * ABOVE - input must be > lower limit, upper limit is ignored
-	 * 
-	 * AT_OR_BELOW - input must be <= lower limit, upper limit is ignored
-	 * 
-	 * BELOW - input must be < lower limit, upper limit is ignored
-	 * 
-	 * RANGE - input must be >= lowwer limit and <= upper limit
-	 * 
-	 * SELECTION - the same a RANGE, but no restriction text is displayed
+	 * defined the various options that apply when entering numbers with upper /
+	 * lowers.
 	 */
 	public enum NUM_TYPE {
-		ANY_NUM, AT_OR_ABOVE, ABOVE, AT_OR_BELOW, BELOW, RANGE, SELECTION;
+		/**
+		 * ignores the lower / upper limits
+		 */
+		ANY_NUM,
+		/**
+		 * input must be &gt;= lower limit, upper limit is ignored
+		 */
+		AT_OR_ABOVE,
+		/**
+		 * input must be &gt; lower limit, upper limit is ignored
+		 */
+		ABOVE,
+		/**
+		 * input must be &lt; = lower limit, upper limit is ignored
+		 */
+		AT_OR_BELOW,
+		/**
+		 * input must be &lt; lower limit, upper limit is ignored
+		 */
+		BELOW,
+
+		/**
+		 * input must be &gt;= lower limit and &lt;= upper limit
+		 */
+		RANGE,
+		/**
+		 * the same a RANGE, but no restriction text is displayed
+		 */
+		SELECTION;
+
 	}
 
 	/**
-	 * Asks the user to enter a string representing a file mame and path which can
+	 * Asks the user to enter a string representing a file name and path which can
 	 * be relative or absolute, ensures that the entered string represents an
 	 * existing file (not a directory) if it's not a file then requests another go
 	 * 
-	 * @param prompt
-	 * @return
-	 * @throws IOException
+	 * @param prompt the prompt to use when asking for input
+	 * @return the entered string this will represent a file
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
 	 */
 	public static String getFile(String prompt) throws IOException {
 		return getFile(prompt, null, null);
 	}
 
 	/**
-	 * Asks the user to enter a string representing a file mame and path which can
+	 * Asks the user to enter a string representing a file name and path which can
 	 * be relative or absolute, ensures that the entered string represents an
 	 * existing file (not a directory) if it's not a file then requests another go,
 	 * if the user enters and empty string then the defaultValue is used
 	 * 
-	 * @param prompt
-	 * @param defaultValue
-	 * @return
-	 * @throws IOException
+	 * @param prompt       the prompt to use when asking for input
+	 * @param defaultValue the default name to use if the user just presses return
+	 * @return the entered string this will represent a file
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
 	 */
 	public static String getFile(String prompt, String defaultValue) throws IOException {
 		while (true) {
@@ -1556,10 +1572,11 @@ public class TextIOUtils {
 	 * represents an existing file (not a directory) if it's not a file then
 	 * requests another go
 	 * 
-	 * @param prompt
-	 * @param startLocation
-	 * @return
-	 * @throws IOException
+	 * @param prompt        the prompt to use when asking for input
+	 * @param startLocation the directory to prepend to the entered name
+	 * @return the entered string this will represent a file
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
 	 */
 	public static String getFileUnder(String prompt, String startLocation) throws IOException {
 		return getFileUnder(prompt, startLocation, null);
@@ -1572,11 +1589,12 @@ public class TextIOUtils {
 	 * requests another go, if the user enters and empty string then the
 	 * defaultValue is used
 	 * 
-	 * @param prompt
-	 * @param startLocation
-	 * @param defaultValue
-	 * @return
-	 * @throws IOException
+	 * @param prompt        the prompt to use when asking for input
+	 * @param startLocation the directory to prepend to the entered name
+	 * @param defaultValue  the default file name if the user just presses return
+	 * @return the entered string this will represent a file
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
 	 */
 	public static String getFileUnder(String prompt, String startLocation, String defaultValue) throws IOException {
 		while (true) {
@@ -1595,11 +1613,13 @@ public class TextIOUtils {
 	 * entered string represents an existing file (not a directory) if it's not a
 	 * file then requests another go
 	 * 
-	 * @param prompt
-	 * @param regexp
-	 * @param defaultValue
-	 * @return
-	 * @throws IOException
+	 * @param prompt the prompt to use when asking for input
+	 * @param regexp a regular expression that the entered filename must match, if
+	 *               it doesn't then the users is asked to re-enter the name. If
+	 *               null any entered name will match
+	 * @return the entered string this will represent a file
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
 	 */
 	public static String getFileMatching(String prompt, String regexp) throws IOException {
 		return getFile(prompt, regexp, null);
@@ -1611,16 +1631,18 @@ public class TextIOUtils {
 	 * (last part of the path) must match the regular expression, ensures that the
 	 * entered string represents an existing file (not a directory) if it's not a
 	 * file then requests another go, if the user enters and empty string then the
-	 * defaultValue is used
+	 * defaultValue is used.
 	 * 
-	 * @param prompt
-	 * @param regexp
-	 * @param defaultValue
-	 * @return
-	 * @throws IOException
+	 * Note that if regexp is non null it is only applied to the filename component,
+	 * not the rest of the path entered
+	 * 
+	 * @param prompt       the prompt to use when asking for input
+	 * @param regexp       if non null then the filename must match this
+	 * @param defaultValue the default name if the user just presses return
+	 * @return the entered string this will represent a file
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
 	 */
-	// Note the regexp (if not null)_ is applied to the filename ony, the rest of
-	// the path is ignored
 	public static String getFileMatching(String prompt, String regexp, String defaultValue) throws IOException {
 		return getFile(prompt, regexp, defaultValue);
 	}
@@ -1656,9 +1678,10 @@ public class TextIOUtils {
 	 * relative or absolute, ensures that the entered string represents an existing
 	 * directory (not a file) and if it's not then requests another go
 	 * 
-	 * @param prompt
-	 * @return
-	 * @throws IOException
+	 * @param prompt the prompt to use when asking for input
+	 * @return the entered string this will represent a directory
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
 	 */
 	public static String getDirectory(String prompt) throws IOException {
 		return getDirectory(prompt, null);
@@ -1670,9 +1693,11 @@ public class TextIOUtils {
 	 * directory (not a file) and if it's not then requests another go, if the user
 	 * enters an empty string then the defaultValue is used
 	 * 
-	 * @param prompt
-	 * @return
-	 * @throws IOException
+	 * @param prompt       the prompt to use when asking for input
+	 * @param defaultValue the default to use if the user just presses return
+	 * @return the entered string this will represent a directory
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
 	 */
 	public static String getDirectory(String prompt, String defaultValue) throws IOException {
 		while (true) {
@@ -1687,10 +1712,12 @@ public class TextIOUtils {
 
 	/**
 	 * Locates all entries in the specified directory strict alpha order with
-	 * directories first, excluding hidden files
+	 * directories first. Entries determined as hidden by the OS (e.g. starting with
+	 * . in Unix / Linux / MacOS, hidden flag for windows) are removed from the
+	 * result
 	 * 
-	 * @param dir
-	 * @return
+	 * @param dir the directory to list
+	 * @return returns the list of names
 	 */
 	public static List<String> listDirectoryNames(String dir) {
 		return listDirectoryNames(dir, true);
@@ -1700,8 +1727,12 @@ public class TextIOUtils {
 	 * Locates all entries in the specified directory strict alpha order with
 	 * directories first
 	 * 
-	 * @param dir
-	 * @return
+	 * @param dir                the directory to list
+	 * @param excludeHiddenFiles if true then entries with as determined as hidden
+	 *                           by the OS (e.g. starting with . in Unix / Linux /
+	 *                           MacOS, hidden flag for windows) are removed from
+	 *                           the list
+	 * @return returns the list of names
 	 */
 	public static List<String> listDirectoryNames(String dir, boolean excludeHiddenFiles) {
 		return listDirectoryNames(Path.of(dir), excludeHiddenFiles);
@@ -1709,10 +1740,12 @@ public class TextIOUtils {
 
 	/**
 	 * Locates all entries in the specified directory strict alpha order with
-	 * directories first
+	 * directories first. Entries determined as hidden by the OS (e.g. starting with
+	 * . in Unix / Linux / MacOS, hidden flag for windows) are removed from the
+	 * result
 	 * 
-	 * @param dir
-	 * @return
+	 * @param dir the directory to list
+	 * @return returns the list of names
 	 */
 	public static List<String> listDirectoryNames(Path dir) {
 		return listDirectoryNames(dir, true);
@@ -1722,8 +1755,12 @@ public class TextIOUtils {
 	 * Locates all entries in the specified directory strict alpha order with
 	 * directories first
 	 * 
-	 * @param dir
-	 * @return
+	 * @param dir                the directory to list
+	 * @param excludeHiddenFiles if true then entries with as determined as hidden
+	 *                           by the OS (e.g. starting with . in Unix / Linux /
+	 *                           MacOS, hidden flag for windows) are removed from
+	 *                           the list
+	 * @return returns the list of names
 	 */
 	public static List<String> listDirectoryNames(Path dir, boolean excludeHiddenFiles) {
 		return listDirectoryNames(dir, DirectoryListFilterType.DIRECTORY_AND_FILE,
@@ -1732,11 +1769,14 @@ public class TextIOUtils {
 
 	/**
 	 * Locates specified (dir or file or both) entries in the specified directory
-	 * strict alpha order with directories first if they are in the output
+	 * strict alpha order with directories first if they are in the output. Entries
+	 * determined as hidden by the OS (e.g. starting with . in Unix / Linux / MacOS,
+	 * hidden flag for windows) are removed from the result
 	 * 
-	 * @param dir
-	 * @param listFilterType
-	 * @return the names only
+	 * @param dir            the directory to list
+	 * @param listFilterType what entries to return (sub dirs, files or both)
+	 * @return the names of the type specified by the filter only
+	 * @see DirectoryListFilterType
 	 */
 	public static List<String> listDirectoryNames(String dir, DirectoryListFilterType listFilterType) {
 		return listDirectoryNames(dir, listFilterType, true);
@@ -1746,9 +1786,14 @@ public class TextIOUtils {
 	 * Locates specified (dir or file or both) entries in the specified directory
 	 * strict alpha order with directories first if they are in the output
 	 * 
-	 * @param dir
-	 * @param listFilterType
-	 * @return the names only
+	 * @param dir                the directory to list
+	 * @param listFilterType     what entries to return (sub dirs, files or both)
+	 * @param excludeHiddenFiles if true then entries with as determined as hidden
+	 *                           by the OS (e.g. starting with . in Unix / Linux /
+	 *                           MacOS, hidden flag for windows) are removed from
+	 *                           the list
+	 * @return the names of the type specified by the filter only
+	 * @see DirectoryListFilterType
 	 */
 	public static List<String> listDirectoryNames(String dir, DirectoryListFilterType listFilterType,
 			boolean excludeHiddenFiles) {
@@ -1757,11 +1802,14 @@ public class TextIOUtils {
 
 	/**
 	 * Locates specified (dir or file or both) entries in the specified directory
-	 * strict alpha order with directories first if they are in the output
+	 * strict alpha order with directories first if they are in the output. Entries
+	 * determined as hidden by the OS (e.g. starting with . in Unix / Linux / MacOS,
+	 * hidden flag for windows) are removed from the result
 	 * 
-	 * @param dir
-	 * @param listFilterType
-	 * @return the names only
+	 * @param dir            the directory to list
+	 * @param listFilterType what entries to return (sub dirs, files or both)
+	 * @return the names of the type specified by the filter only
+	 * @see DirectoryListFilterType
 	 */
 	public static List<String> listDirectoryNames(Path dir, DirectoryListFilterType listFilterType) {
 		return listDirectoryNames(dir, listFilterType, true);
@@ -1771,9 +1819,14 @@ public class TextIOUtils {
 	 * Locates specified (dir or file or both) entries in the specified directory
 	 * strict alpha order with directories first if they are in the output
 	 * 
-	 * @param dir
-	 * @param listFilterType
+	 * @param dir                the directory to list
+	 * @param listFilterType     what entries to return (sub dirs, files or both)
+	 * @param excludeHiddenFiles if true then entries with as determined as hidden
+	 *                           by the OS (e.g. starting with . in Unix / Linux /
+	 *                           MacOS, hidden flag for windows) are removed from
+	 *                           the list
 	 * @return the names only
+	 * @see DirectoryListFilterType
 	 */
 	public static List<String> listDirectoryNames(Path dir, DirectoryListFilterType listFilterType,
 			boolean excludeHiddenFiles) {
@@ -1782,11 +1835,15 @@ public class TextIOUtils {
 
 	/**
 	 * Locates all entries in the specified directory in output in either dir first,
-	 * file first or mixed, returned in strict alpha order by grouping
+	 * file first or mixed, returned in strict alpha order by grouping. Entries
+	 * determined as hidden by the OS (e.g. starting with . in Unix / Linux / MacOS,
+	 * hidden flag for windows) are removed from the result
 	 * 
-	 * @param dir
-	 * @param listOrderType
+	 * @param dir           the directory to list
+	 * @param listOrderType how the resulting entries should be ordered
 	 * @return the names only
+	 * 
+	 * @see DirectoryListOrderType
 	 */
 	public static List<String> listDirectoryNames(String dir, DirectoryListOrderType listOrderType) {
 		return listDirectoryNames(dir, listOrderType, true);
@@ -1796,9 +1853,14 @@ public class TextIOUtils {
 	 * Locates all entries in the specified directory in output in either dir first,
 	 * file first or mixed, returned in strict alpha order by grouping
 	 * 
-	 * @param dir
-	 * @param listOrderType
+	 * @param dir                the directory to list
+	 * @param listOrderType      how the resulting entries should be ordered
+	 * @param excludeHiddenFiles if true then entries with as determined as hidden
+	 *                           by the OS (e.g. starting with . in Unix / Linux /
+	 *                           MacOS, hidden flag for windows) are removed from
+	 *                           the list
 	 * @return the names only
+	 * @see DirectoryListOrderType
 	 */
 	public static List<String> listDirectoryNames(String dir, DirectoryListOrderType listOrderType,
 			boolean excludeHiddenFiles) {
@@ -1807,11 +1869,14 @@ public class TextIOUtils {
 
 	/**
 	 * Locates all entries in the specified directory in output in either dir first,
-	 * file first or mixed, returned in strict alpha order by grouping
+	 * file first or mixed, returned in strict alpha order by grouping. Entries
+	 * determined as hidden by the OS (e.g. starting with . in Unix / Linux / MacOS,
+	 * hidden flag for windows) are removed from the result
 	 * 
-	 * @param dir
-	 * @param listOrderType
+	 * @param dir           the directory to list
+	 * @param listOrderType how the resulting entries should be ordered
 	 * @return the names only
+	 * @see DirectoryListOrderType
 	 */
 	public static List<String> listDirectoryNames(Path dir, DirectoryListOrderType listOrderType) {
 		return listDirectoryNames(dir, listOrderType, true);
@@ -1821,9 +1886,14 @@ public class TextIOUtils {
 	 * Locates all entries in the specified directory in output in either dir first,
 	 * file first or mixed, returned in strict alpha order by grouping
 	 * 
-	 * @param dir
-	 * @param listOrderType
+	 * @param dir                the directory to list
+	 * @param listOrderType      how the resulting entries should be ordered
+	 * @param excludeHiddenFiles if true then entries with as determined as hidden
+	 *                           by the OS (e.g. starting with . in Unix / Linux /
+	 *                           MacOS, hidden flag for windows) are removed from
+	 *                           the list
 	 * @return the names only
+	 * @see DirectoryListOrderType
 	 */
 	public static List<String> listDirectoryNames(Path dir, DirectoryListOrderType listOrderType,
 			boolean excludeHiddenFiles) {
@@ -1833,12 +1903,15 @@ public class TextIOUtils {
 	/**
 	 * Locates the specified entries (dir, file, both) in the specified directory,
 	 * returning in strict alpha order with the specified grouping (dir / file first
-	 * or mixed)
+	 * or mixed). Entries determined as hidden by the OS (e.g. starting with . in
+	 * Unix / Linux / MacOS, hidden flag for windows) are removed from the result
 	 * 
-	 * @param dir
-	 * @param listFilterType
-	 * @param listOrderType
+	 * @param dir            the directory to list
+	 * @param listFilterType what entries to return (sub dirs, files or both)
+	 * @param listOrderType  how the resulting entries should be ordered
 	 * @return the names only
+	 * @see DirectoryListFilterType
+	 * @see DirectoryListOrderType
 	 */
 	public static List<String> listDirectoryNames(String dir, DirectoryListFilterType listFilterType,
 			DirectoryListOrderType listOrderType) {
@@ -1850,10 +1923,16 @@ public class TextIOUtils {
 	 * returning in strict alpha order with the specified grouping (dir / file first
 	 * or mixed)
 	 * 
-	 * @param dir
-	 * @param listFilterType
-	 * @param listOrderType
+	 * @param dir                the directory to list
+	 * @param listFilterType     what entries to return (sub dirs, files or both)
+	 * @param listOrderType      how the resulting entries should be ordered
+	 * @param excludeHiddenFiles if true then entries with as determined as hidden
+	 *                           by the OS (e.g. starting with . in Unix / Linux /
+	 *                           MacOS, hidden flag for windows) are removed from
+	 *                           the list
 	 * @return the names only
+	 * @see DirectoryListFilterType
+	 * @see DirectoryListOrderType
 	 */
 	public static List<String> listDirectoryNames(String dir, DirectoryListFilterType listFilterType,
 			DirectoryListOrderType listOrderType, boolean excludeHiddenFiles) {
@@ -1863,12 +1942,15 @@ public class TextIOUtils {
 	/**
 	 * Locates the specified entries (dir, file, both) in the specified directory,
 	 * returning in strict alpha order with the specified grouping (dir / file first
-	 * or mixed)
+	 * or mixed). Entries determined as hidden by the OS (e.g. starting with . in
+	 * Unix / Linux / MacOS, hidden flag for windows) are removed from the result
 	 * 
-	 * @param dir
-	 * @param listFilterType
-	 * @param listOrderType
+	 * @param dir            the directory to list
+	 * @param listFilterType what entries to return (sub dirs, files or both)
+	 * @param listOrderType  how the resulting entries should be ordered
 	 * @return the names only
+	 * @see DirectoryListFilterType
+	 * @see DirectoryListOrderType
 	 */
 	public static List<String> listDirectoryNames(Path dir, DirectoryListFilterType listFilterType,
 			DirectoryListOrderType listOrderType) {
@@ -1880,10 +1962,16 @@ public class TextIOUtils {
 	 * returning in strict alpha order with the specified grouping (dir / file first
 	 * or mixed)
 	 * 
-	 * @param dir
-	 * @param listFilterType
-	 * @param listOrderType
+	 * @param dir                the directory to list
+	 * @param listFilterType     what entries to return (sub dirs, files or both)
+	 * @param listOrderType      how the resulting entries should be ordered
+	 * @param excludeHiddenFiles if true then entries with as determined as hidden
+	 *                           by the OS (e.g. starting with . in Unix / Linux /
+	 *                           MacOS, hidden flag for windows) are removed from
+	 *                           the list
 	 * @return the names only
+	 * @see DirectoryListFilterType
+	 * @see DirectoryListOrderType
 	 */
 	public static List<String> listDirectoryNames(Path dir, DirectoryListFilterType listFilterType,
 			DirectoryListOrderType listOrderType, boolean excludeHiddenFiles) {
@@ -1892,10 +1980,12 @@ public class TextIOUtils {
 
 	/**
 	 * Locates all entries in the specified directory strict alpha order with
-	 * directories first. Hidden entries are excluded.
+	 * directories first. Entries determined as hidden by the OS (e.g. starting with
+	 * . in Unix / Linux / MacOS, hidden flag for windows) are removed from the
+	 * result
 	 * 
-	 * @param dir
-	 * @return
+	 * @param dir the directory to list
+	 * @return list of name/type strings
 	 */
 	public static List<String> listDirectoryNameTypes(String dir) {
 		return listDirectoryNameTypes(dir);
@@ -1903,11 +1993,14 @@ public class TextIOUtils {
 
 	/**
 	 * Locates all entries in the specified directory strict alpha order with
-	 * directories first. Hidden entries (name starts with .) are excluded.
+	 * directories first.
 	 * 
-	 * @param dir
-	 * @paran excludeHiddenFiles
-	 * @return
+	 * @param dir                the directory to list
+	 * @param excludeHiddenFiles if true then entries with as determined as hidden
+	 *                           by the OS (e.g. starting with . in Unix / Linux /
+	 *                           MacOS, hidden flag for windows) are removed from
+	 *                           the list
+	 * @return list of name/type strings
 	 */
 	public static List<String> listDirectoryNameTypes(String dir, boolean excludeHiddenFiles) {
 		return listDirectoryNameTypes(Path.of(dir), excludeHiddenFiles);
@@ -1915,10 +2008,12 @@ public class TextIOUtils {
 
 	/**
 	 * Locates all entries in the specified directory strict alpha order with
-	 * directories first. Hidden entries (name starts with .) are excluded.
+	 * directories first. Entries determined as hidden by the OS (e.g. starting with
+	 * . in Unix / Linux / MacOS, hidden flag for windows) are removed from the
+	 * result
 	 * 
-	 * @param dir
-	 * @return
+	 * @param dir the directory to list
+	 * @return list of name/type strings
 	 */
 	public static List<String> listDirectoryNameTypes(Path dir) {
 		return listDirectoryNameTypes(dir, true);
@@ -1926,10 +2021,14 @@ public class TextIOUtils {
 
 	/**
 	 * Locates all entries in the specified directory strict alpha order with
-	 * directories first. Hidden entries (name starts with .) are excluded.
+	 * directories first.
 	 * 
-	 * @param dir
-	 * @return
+	 * @param dir                the directory to list
+	 * @param excludeHiddenFiles if true then entries with as determined as hidden
+	 *                           by the OS (e.g. starting with . in Unix / Linux /
+	 *                           MacOS, hidden flag for windows) are removed from
+	 *                           the list
+	 * @return list of name/type strings
 	 */
 	public static List<String> listDirectoryNameTypes(Path dir, boolean excludeHiddenFiles) {
 		return listDirectoryNameTypes(dir, DirectoryListFilterType.DIRECTORY_AND_FILE,
@@ -1938,12 +2037,14 @@ public class TextIOUtils {
 
 	/**
 	 * Locates specified (dir or file or both) entries in the specified directory
-	 * strict alpha order with directories first if they are in the output. Hidden
-	 * entries (name starts with .) are excluded.
+	 * strict alpha order with directories first if they are in the output. Entries
+	 * determined as hidden by the OS (e.g. starting with . in Unix / Linux / MacOS,
+	 * hidden flag for windows) are removed from the result
 	 * 
-	 * @param dir
-	 * @param listFilterType
+	 * @param dir            the directory to list
+	 * @param listFilterType what entries to return (sub dirs, files or both)
 	 * @return the names only
+	 * @see DirectoryListFilterType
 	 */
 	public static List<String> listDirectoryNameTypes(String dir, DirectoryListFilterType listFilterType) {
 		return listDirectoryNameTypes(dir, listFilterType, true);
@@ -1951,12 +2052,16 @@ public class TextIOUtils {
 
 	/**
 	 * Locates specified (dir or file or both) entries in the specified directory
-	 * strict alpha order with directories first if they are in the output. Hidden
-	 * entries (name starts with .) are excluded.
+	 * strict alpha order with directories first if they are in the output.
 	 * 
-	 * @param dir
-	 * @param listFilterType
+	 * @param dir                the directory to list
+	 * @param listFilterType     what entries to return (sub dirs, files or both)
+	 * @param excludeHiddenFiles if true then entries with as determined as hidden
+	 *                           by the OS (e.g. starting with . in Unix / Linux /
+	 *                           MacOS, hidden flag for windows) are removed from
+	 *                           the list
 	 * @return the names only
+	 * @see DirectoryListFilterType
 	 */
 	public static List<String> listDirectoryNameTypes(String dir, DirectoryListFilterType listFilterType,
 			boolean excludeHiddenFiles) {
@@ -1965,12 +2070,14 @@ public class TextIOUtils {
 
 	/**
 	 * Locates specified (dir or file or both) entries in the specified directory
-	 * strict alpha order with directories first if they are in the output. Hidden
-	 * entries (name starts with .) are excluded.
+	 * strict alpha order with directories first if they are in the output. Entries
+	 * determined as hidden by the OS (e.g. starting with . in Unix / Linux / MacOS,
+	 * hidden flag for windows) are removed from the result
 	 * 
-	 * @param dir
-	 * @param listFilterType
+	 * @param dir            the directory to list
+	 * @param listFilterType what entries to return (sub dirs, files or both)
 	 * @return the names only
+	 * @see DirectoryListFilterType
 	 */
 	public static List<String> listDirectoryNameTypes(Path dir, DirectoryListFilterType listFilterType) {
 		return listDirectoryNameTypes(dir, listFilterType, true);
@@ -1978,12 +2085,16 @@ public class TextIOUtils {
 
 	/**
 	 * Locates specified (dir or file or both) entries in the specified directory
-	 * strict alpha order with directories first if they are in the output. Hidden
-	 * entries (name starts with .) are excluded.
+	 * strict alpha order with directories first if they are in the output.
 	 * 
-	 * @param dir
-	 * @param listFilterType
+	 * @param dir                the directory to list
+	 * @param listFilterType     what entries to return (sub dirs, files or both)
+	 * @param excludeHiddenFiles if true then entries with as determined as hidden
+	 *                           by the OS (e.g. starting with . in Unix / Linux /
+	 *                           MacOS, hidden flag for windows) are removed from
+	 *                           the list
 	 * @return the names only
+	 * @see DirectoryListFilterType
 	 */
 	public static List<String> listDirectoryNameTypes(Path dir, DirectoryListFilterType listFilterType,
 			boolean excludeHiddenFiles) {
@@ -1993,12 +2104,14 @@ public class TextIOUtils {
 
 	/**
 	 * Locates all entries in the specified directory in output in either dir first,
-	 * file first or mixed, returned in strict alpha order by grouping. Hidden
-	 * entries (name starts with .) are excluded.
+	 * file first or mixed, returned in strict alpha order by grouping. Entries
+	 * determined as hidden by the OS (e.g. starting with . in Unix / Linux / MacOS,
+	 * hidden flag for windows) are removed from the result
 	 * 
-	 * @param dir
-	 * @param listOrderType
+	 * @param dir           the directory to list
+	 * @param listOrderType how the resulting entries should be ordered
 	 * @return the names only
+	 * @see DirectoryListOrderType
 	 */
 	public static List<String> listDirectoryNameTypes(String dir, DirectoryListOrderType listOrderType) {
 		return listDirectoryNameTypes(dir, listOrderType, true);
@@ -2006,12 +2119,16 @@ public class TextIOUtils {
 
 	/**
 	 * Locates all entries in the specified directory in output in either dir first,
-	 * file first or mixed, returned in strict alpha order by grouping. Hidden
-	 * entries (name starts with .) are excluded.
+	 * file first or mixed, returned in strict alpha order by grouping.
 	 * 
-	 * @param dir
-	 * @param listOrderType
+	 * @param dir                the directory to list
+	 * @param listOrderType      how the resulting entries should be ordered
+	 * @param excludeHiddenFiles if true then entries with as determined as hidden
+	 *                           by the OS (e.g. starting with . in Unix / Linux /
+	 *                           MacOS, hidden flag for windows) are removed from
+	 *                           the list
 	 * @return the names only
+	 * @see DirectoryListOrderType
 	 */
 	public static List<String> listDirectoryNameTypes(String dir, DirectoryListOrderType listOrderType,
 			boolean excludeHiddenFiles) {
@@ -2020,12 +2137,14 @@ public class TextIOUtils {
 
 	/**
 	 * Locates all entries in the specified directory in output in either dir first,
-	 * file first or mixed, returned in strict alpha order by grouping. Hidden
-	 * entries (name starts with .) are excluded.
+	 * file first or mixed, returned in strict alpha order by grouping. Entries
+	 * determined as hidden by the OS (e.g. starting with . in Unix / Linux / MacOS,
+	 * hidden flag for windows) are removed from the result
 	 * 
-	 * @param dir
-	 * @param listOrderType
+	 * @param dir           the directory to list
+	 * @param listOrderType how the resulting entries should be ordered
 	 * @return the names only
+	 * @see DirectoryListOrderType
 	 */
 	public static List<String> listDirectoryNameTypes(Path dir, DirectoryListOrderType listOrderType) {
 		return listDirectoryNameTypes(dir, listOrderType, true);
@@ -2033,12 +2152,16 @@ public class TextIOUtils {
 
 	/**
 	 * Locates all entries in the specified directory in output in either dir first,
-	 * file first or mixed, returned in strict alpha order by grouping. Hidden
-	 * entries (name starts with .) are excluded.
+	 * file first or mixed, returned in strict alpha order by grouping.
 	 * 
-	 * @param dir
-	 * @param listOrderType
+	 * @param dir                the directory to list
+	 * @param listOrderType      how the resulting entries should be ordered
+	 * @param excludeHiddenFiles if true then entries with as determined as hidden
+	 *                           by the OS (e.g. starting with . in Unix / Linux /
+	 *                           MacOS, hidden flag for windows) are removed from
+	 *                           the list
 	 * @return the names only
+	 * @see DirectoryListOrderType
 	 */
 	public static List<String> listDirectoryNameTypes(Path dir, DirectoryListOrderType listOrderType,
 			boolean excludeHiddenFiles) {
@@ -2049,12 +2172,15 @@ public class TextIOUtils {
 	/**
 	 * Locates the specified entries (dir, file, both) in the specified directory,
 	 * returning in strict alpha order with the specified grouping (dir / file first
-	 * or mixed). Hidden entries (name starts with .) are excluded.
+	 * or mixed). Entries determined as hidden by the OS (e.g. starting with . in
+	 * Unix / Linux / MacOS, hidden flag for windows) are removed from the result
 	 * 
-	 * @param dir
-	 * @param listFilterType
-	 * @param listOrderType
+	 * @param dir            the directory to list
+	 * @param listFilterType what entries to return (sub dirs, files or both)
+	 * @param listOrderType  how the resulting entries should be ordered
 	 * @return the names only
+	 * @see DirectoryListFilterType
+	 * @see DirectoryListOrderType
 	 */
 	public static List<String> listDirectoryNameTypes(String dir, DirectoryListFilterType listFilterType,
 			DirectoryListOrderType listOrderType) {
@@ -2064,12 +2190,18 @@ public class TextIOUtils {
 	/**
 	 * Locates the specified entries (dir, file, both) in the specified directory,
 	 * returning in strict alpha order with the specified grouping (dir / file first
-	 * or mixed). Hidden entries (name starts with .) are excluded.
+	 * or mixed).
 	 * 
-	 * @param dir
-	 * @param listFilterType
-	 * @param listOrderType
+	 * @param dir                the directory to list
+	 * @param listFilterType     what entries to return (sub dirs, files or both)
+	 * @param listOrderType      how the resulting entries should be ordered
+	 * @param excludeHiddenFiles if true then entries with as determined as hidden
+	 *                           by the OS (e.g. starting with . in Unix / Linux /
+	 *                           MacOS, hidden flag for windows) are removed from
+	 *                           the list
 	 * @return the names only
+	 * @see DirectoryListFilterType
+	 * @see DirectoryListOrderType
 	 */
 	public static List<String> listDirectoryNameTypes(String dir, DirectoryListFilterType listFilterType,
 			DirectoryListOrderType listOrderType, boolean excludeHiddenFiles) {
@@ -2079,12 +2211,15 @@ public class TextIOUtils {
 	/**
 	 * Locates the specified entries (dir, file, both) in the specified directory,
 	 * returning in strict alpha order with the specified grouping (dir / file first
-	 * or mixed). Hidden entries (name starts with .) are excluded.
+	 * or mixed). Entries determined as hidden by the OS (e.g. starting with . in
+	 * Unix / Linux / MacOS, hidden flag for windows) are removed from the result
 	 * 
-	 * @param dir
-	 * @param listFilterType
-	 * @param listOrderType
+	 * @param dir            the directory to list
+	 * @param listFilterType what entries to return (sub dirs, files or both)
+	 * @param listOrderType  how the resulting entries should be ordered
 	 * @return the names only
+	 * @see DirectoryListFilterType
+	 * @see DirectoryListOrderType
 	 */
 	public static List<String> listDirectoryNameTypes(Path dir, DirectoryListFilterType listFilterType,
 			DirectoryListOrderType listOrderType) {
@@ -2094,26 +2229,32 @@ public class TextIOUtils {
 	/**
 	 * Locates the specified entries (dir, file, both) in the specified directory,
 	 * returning in strict alpha order with the specified grouping (dir / file first
-	 * or mixed). Hidden entries (name starts with .) are excluded.
+	 * or mixed).
 	 * 
-	 * @param dir
-	 * @param listFilterType
-	 * @param listOrderType
+	 * @param dir                the directory to list
+	 * @param listFilterType     what entries to return (sub dirs, files or both)
+	 * @param listOrderType      how the resulting entries should be ordered
+	 * @param excludeHiddenFiles if true then entries with as determined as hidden
+	 *                           by the OS (e.g. starting with . in Unix / Linux /
+	 *                           MacOS, hidden flag for windows) are removed from
+	 *                           the list
 	 * @return the names only
+	 * @see DirectoryListFilterType
+	 * @see DirectoryListOrderType
 	 */
 	public static List<String> listDirectoryNameTypes(Path dir, DirectoryListFilterType listFilterType,
-			DirectoryListOrderType listOrderType, boolean excludeHiddenFile) {
-		return listDirectoryEntriesAsString(dir, listFilterType, listOrderType, excludeHiddenFile, null, true, true);
+			DirectoryListOrderType listOrderType, boolean excludeHiddenFiles) {
+		return listDirectoryEntriesAsString(dir, listFilterType, listOrderType, excludeHiddenFiles, null, true, true);
 	}
 
 	/**
 	 * From the given directory list the directory entries as strings subject to the
-	 * controls. Hidden entries (name starts with .) are excluded.
+	 * controls. Entries determined as hidden by the OS (e.g. starting with . in
+	 * Unix / Linux / MacOS, hidden flag for windows) are removed from the result
 	 * 
 	 * @param dir             directory to list
 	 * @param listFilterType  what entries to return (sub dirs, files or both)
-	 * @param listOrderType   how to order the result, directories first, files
-	 *                        first, or both (each segment is in alphabetical order)
+	 * @param listOrderType   how the resulting entries should be ordered
 	 * @param regexp          if provided is used to only select matching entries,
 	 *                        for example files ending in .java
 	 * @param regexpFilesOnly does the regexp apply to both directories and files or
@@ -2122,6 +2263,8 @@ public class TextIOUtils {
 	 *                        (e.g. tim.txt (File)), if fals only the name (e.g.
 	 *                        tim.txt)
 	 * @return the names only or names + type (see nameAndType flag)
+	 * @see DirectoryListFilterType
+	 * @see DirectoryListOrderType
 	 */
 	public static List<String> listDirectoryEntriesAsString(String dir, DirectoryListFilterType listFilterType,
 			DirectoryListOrderType listOrderType, String regexp, boolean regexpFilesOnly, boolean nameAndType) {
@@ -2131,12 +2274,12 @@ public class TextIOUtils {
 
 	/**
 	 * From the given directory list the directory entries as strings subject to the
-	 * controls. Hidden entries (name starts with .) are excluded.
+	 * controls. Entries determined as hidden by the OS (e.g. starting with . in
+	 * Unix / Linux / MacOS, hidden flag for windows) are removed from the result
 	 * 
 	 * @param dir             directory to list
 	 * @param listFilterType  what entries to return (sub dirs, files or both)
-	 * @param listOrderType   how to order the result, directories first, files
-	 *                        first, or both (each segment is in alphabetical order)
+	 * @param listOrderType   how the resulting entries should be ordered
 	 * @param regexp          if provided is used to only select matching entries,
 	 *                        for example files ending in .java
 	 * @param regexpFilesOnly does the regexp apply to both directories and files or
@@ -2145,6 +2288,8 @@ public class TextIOUtils {
 	 *                        (e.g. tim.txt (File)), if fals only the name (e.g.
 	 *                        tim.txt)
 	 * @return the names only or names + type (see nameAndType flag)
+	 * @see DirectoryListFilterType
+	 * @see DirectoryListOrderType
 	 */
 	public static List<String> listDirectoryEntriesAsString(Path dir, DirectoryListFilterType listFilterType,
 			DirectoryListOrderType listOrderType, String regexp, boolean regexpFilesOnly, boolean nameAndType) {
@@ -2154,50 +2299,60 @@ public class TextIOUtils {
 
 	/**
 	 * From the given directory list the directory entries as strings subject to the
-	 * controls. Hidden entries (name starts with .) are excluded.
+	 * controls.
 	 * 
-	 * @param dir             directory to list
-	 * @param listFilterType  what entries to return (sub dirs, files or both)
-	 * @param listOrderType   how to order the result, directories first, files
-	 *                        first, or both (each segment is in alphabetical order)
-	 * @param regexp          if provided is used to only select matching entries,
-	 *                        for example files ending in .java
-	 * @param regexpFilesOnly does the regexp apply to both directories and files or
-	 *                        just files
-	 * @param nameAndType     if true then the name and type will be in the result
-	 *                        (e.g. tim.txt (File)), if fals only the name (e.g.
-	 *                        tim.txt)
+	 * @param dir                directory to list
+	 * @param listFilterType     what entries to return (sub dirs, files or both)
+	 * @param listOrderType      how the resulting entries should be ordered
+	 * @param excludeHiddenFiles if true then entries with as determined as hidden
+	 *                           by the OS (e.g. starting with . in Unix / Linux /
+	 *                           MacOS, hidden flag for windows) are removed from
+	 *                           the list
+	 * @param regexp             if provided is used to only select matching
+	 *                           entries, for example files ending in .java
+	 * @param regexpFilesOnly    does the regexp apply to both directories and files
+	 *                           or just files
+	 * @param nameAndType        if true then the name and type will be in the
+	 *                           result (e.g. tim.txt (File)), if false only the
+	 *                           name (e.g. tim.txt)
 	 * @return the names only or names + type (see nameAndType flag)
+	 * @see DirectoryListFilterType
+	 * @see DirectoryListOrderType
 	 */
 	public static List<String> listDirectoryEntriesAsString(String dir, DirectoryListFilterType listFilterType,
-			DirectoryListOrderType listOrderType, boolean excludeHiddenFile, String regexp, boolean regexpFilesOnly,
+			DirectoryListOrderType listOrderType, boolean excludeHiddenFiles, String regexp, boolean regexpFilesOnly,
 			boolean nameAndType) {
 
-		return listDirectoryEntriesAsString(Path.of(dir), listFilterType, listOrderType, excludeHiddenFile, regexp,
+		return listDirectoryEntriesAsString(Path.of(dir), listFilterType, listOrderType, excludeHiddenFiles, regexp,
 				regexpFilesOnly, nameAndType);
 	}
 
 	/**
 	 * From the given directory list the directory entries as strings subject to the
-	 * controls. Hidden entries (name starts with .) are excluded.
+	 * controls.
 	 * 
-	 * @param dir             directory to list
-	 * @param listFilterType  what entries to return (sub dirs, files or both)
-	 * @param listOrderType   how to order the result, directories first, files
-	 *                        first, or both (each segment is in alphabetical order)
-	 * @param regexp          if provided is used to only select matching entries,
-	 *                        for example files ending in .java
-	 * @param regexpFilesOnly does the regexp apply to both directories and files or
-	 *                        just files
-	 * @param nameAndType     if true then the name and type will be in the result
-	 *                        (e.g. tim.txt (File)), if fals only the name (e.g.
-	 *                        tim.txt)
+	 * @param dir                directory to list
+	 * @param listFilterType     what entries to return (sub dirs, files or both)
+	 * @param listOrderType      how the resulting entries should be ordered
+	 * @param excludeHiddenFiles if true then entries with as determined as hidden
+	 *                           by the OS (e.g. starting with . in Unix / Linux /
+	 *                           MacOS, hidden flag for windows) are removed from
+	 *                           the list
+	 * @param regexp             if provided is used to only select matching
+	 *                           entries, for example files ending in .java
+	 * @param regexpFilesOnly    does the regexp apply to both directories and files
+	 *                           or just files
+	 * @param nameAndType        if true then the name and type will be in the
+	 *                           result (e.g. tim.txt (File)), if fals only the name
+	 *                           (e.g. tim.txt)
 	 * @return the names only or names + type (see nameAndType flag)
+	 * @see DirectoryListFilterType
+	 * @see DirectoryListOrderType
 	 */
 	public static List<String> listDirectoryEntriesAsString(Path dir, DirectoryListFilterType listFilterType,
-			DirectoryListOrderType listOrderType, boolean excludeHiddenFile, String regexp, boolean regexpFilesOnly,
+			DirectoryListOrderType listOrderType, boolean excludeHiddenFiles, String regexp, boolean regexpFilesOnly,
 			boolean nameAndType) {
-		List<DirectoryEntry> entries = listDirectoryEntries(dir, listFilterType, listOrderType, excludeHiddenFile,
+		List<DirectoryEntry> entries = listDirectoryEntries(dir, listFilterType, listOrderType, excludeHiddenFiles,
 				regexp, regexpFilesOnly);
 		return entries.stream().map(entry -> {
 			if (nameAndType) {
@@ -2210,17 +2365,20 @@ public class TextIOUtils {
 
 	/**
 	 * From the given directory list the directory contents as directory entries
-	 * subject to the controls. Hidden entries (name starts with .) are excluded.
+	 * subject to the controls. Entries determined as hidden by the OS (e.g.
+	 * starting with . in Unix / Linux / MacOS, hidden flag for windows) are removed
+	 * from the result
 	 * 
 	 * @param dir             directory to list
 	 * @param listFilterType  what entries to return (sub dirs, files or both)
-	 * @param listOrderType   how to order the result, directories first, files
-	 *                        first, or both (each segment is in alphabetical order)
+	 * @param listOrderType   how the resulting entries should be ordered
 	 * @param regexp          if provided is used to only select matching entries,
 	 *                        for example files ending in .java
 	 * @param regexpFilesOnly does the regexp apply to both directories and files or
 	 *                        just files
-	 * @return
+	 * @return list of matching entries ordered as requested
+	 * @see DirectoryListFilterType
+	 * @see DirectoryListOrderType
 	 */
 	public static List<DirectoryEntry> listDirectoryEntries(String dir, DirectoryListFilterType listFilterType,
 			DirectoryListOrderType listOrderType, String regexp, boolean regexpFilesOnly) {
@@ -2229,17 +2387,20 @@ public class TextIOUtils {
 
 	/**
 	 * From the given directory list the directory contents as directory entries
-	 * subject to the controls. Hidden entries (name starts with .) are excluded.
+	 * subject to the controls. Entries determined as hidden by the OS (e.g.
+	 * starting with . in Unix / Linux / MacOS, hidden flag for windows) are removed
+	 * from the result
 	 * 
 	 * @param dir             directory to list
 	 * @param listFilterType  what entries to return (sub dirs, files or both)
-	 * @param listOrderType   how to order the result, directories first, files
-	 *                        first, or both (each segment is in alphabetical order)
+	 * @param listOrderType   how the resulting entries should be ordered
 	 * @param regexp          if provided is used to only select matching entries,
 	 *                        for example files ending in .java
 	 * @param regexpFilesOnly does the regexp apply to both directories and files or
 	 *                        just files
-	 * @return
+	 * @return list of matching entries ordered as requested
+	 * @see DirectoryListFilterType
+	 * @see DirectoryListOrderType
 	 */
 	public static List<DirectoryEntry> listDirectoryEntries(Path dir, DirectoryListFilterType listFilterType,
 			DirectoryListOrderType listOrderType, String regexp, boolean regexpFilesOnly) {
@@ -2248,20 +2409,22 @@ public class TextIOUtils {
 
 	/**
 	 * From the given directory list the directory contents as directory entries
-	 * subject to the controls. Hidden entries (name starts with .) are excluded.
+	 * subject to the controls.
 	 * 
 	 * @param dir                directory to list
 	 * @param listFilterType     what entries to return (sub dirs, files or both)
-	 * @param listOrderType      how to order the result, directories first, files
-	 *                           first, or both (each segment is in alphabetical
-	 *                           order)
-	 * @param excludeHiddenFiles If true hidden entries (as per the underlying OS
-	 *                           conventions) are not included in the list
+	 * @param listOrderType      how the resulting entries should be ordered
+	 * @param excludeHiddenFiles if true then entries with as determined as hidden
+	 *                           by the OS (e.g. starting with . in Unix / Linux /
+	 *                           MacOS, hidden flag for windows) are removed from
+	 *                           the list conventions) are not included in the list
 	 * @param regexp             if provided is used to only select matching
 	 *                           entries, for example files ending in .java
 	 * @param regexpFilesOnly    does the regexp apply to both directories and files
 	 *                           or just files
-	 * @return
+	 * @return list of matching entries ordered as requested
+	 * @see DirectoryListFilterType
+	 * @see DirectoryListOrderType
 	 */
 	public static List<DirectoryEntry> listDirectoryEntries(Path dir, DirectoryListFilterType listFilterType,
 			DirectoryListOrderType listOrderType, boolean excludeHiddenFiles, String regexp, boolean regexpFilesOnly) {
@@ -2352,11 +2515,11 @@ public class TextIOUtils {
 	 * 
 	 * @param dir                 directory to list
 	 * @param listFilterType      what entries to return (sub dirs, files or both)
-	 * @param listOrderType       how to order the result, directories first, files
-	 *                            first, or both (each segment is in alphabetical
-	 *                            order)
-	 * @param excludeHiddenFiles  If true hidden entries (beginning with .) are not
-	 *                            included in the list
+	 * @param listOrderType       how the resulting entries should be ordered
+	 * @param excludeHiddenFiles  if true then entries with as determined as hidden
+	 *                            by the OS (e.g. starting with . in Unix / Linux /
+	 *                            MacOS, hidden flag for windows) are removed from
+	 *                            the list
 	 * @param regexp              if provided is used to only select matching
 	 *                            entries, for example files ending in .java
 	 * @param regexpFilesOnly     does the regexp apply to both directories and
@@ -2371,6 +2534,8 @@ public class TextIOUtils {
 	 * @param addParentDirectory  If true then an entry will be made for the parent
 	 *                            directory ("..")
 	 * @return the ChoiceDescriptionData object which is ready to be used.
+	 * @see DirectoryListFilterType
+	 * @see DirectoryListOrderType
 	 */
 	public static ChoiceDescriptionData<DirectoryEntry> buildChoiceDescriptionDataFromDirectory(String dir,
 			DirectoryListFilterType listFilterType, DirectoryListOrderType listOrderType, boolean excludeHiddenFiles,
@@ -2380,8 +2545,56 @@ public class TextIOUtils {
 				regexp, regexpFilesOnly, nameAndType, addAbandon, addCurrentDirectory, addParentDirectory);
 	}
 
-	public static String CURRENT_DIRECTORY = ".";
-	public static String PARENT_DIRECTORY = "..";
+	/**
+	 * String to be used as the name for the entry for the current directory
+	 */
+	public static String currentDirectoryName = ".";
+
+	/**
+	 * getter for currentDirectoryName
+	 * 
+	 * @return the value of currentDirectoryName
+	 */
+	public String getCurrentDirectoryName() {
+		return currentDirectoryName;
+	}
+
+	/**
+	 * setter for currentDirectoryName
+	 * 
+	 * Be very careful using this to ensure you don;t use a valid entry name
+	 * 
+	 * @param newCurrentDirectoryName the new value for cparentDirectoryName
+	 */
+	public void setCurrentDirectoryName(String newCurrentDirectoryName) {
+		currentDirectoryName = newCurrentDirectoryName;
+	}
+
+	/**
+	 * String to be used as the name for the entry for the current directories
+	 * parent
+	 */
+	public static String parentDirectoryName = "..";
+
+	/**
+	 * getter for parentDirectoryName
+	 * 
+	 * @return the value of parentDirectoryName
+	 */
+	public String getParentDirectoryName() {
+		return parentDirectoryName;
+	}
+
+	/**
+	 * setter for parentDirectoryName
+	 * 
+	 * Be very careful using this to ensure you dont use a valid entry name
+	 * 
+	 * @param newParentDirectoryName the new value for parentDirectoryName
+	 */
+	public void setParentDirectoryName(String newParentDirectoryName) {
+		parentDirectoryName = newParentDirectoryName;
+	}
 
 	/**
 	 * From the given directory list the directory entries as strings subject to the
@@ -2389,11 +2602,11 @@ public class TextIOUtils {
 	 * 
 	 * @param dir                 directory to list
 	 * @param listFilterType      what entries to return (sub dirs, files or both)
-	 * @param listOrderType       how to order the result, directories first, files
-	 *                            first, or both (each segment is in alphabetical
-	 *                            order)
-	 * @param excludeHiddenFiles  If true hidden entries (beginning with .) are not
-	 *                            included in the list
+	 * @param listOrderType       how the resulting entries should be ordered
+	 * @param excludeHiddenFiles  if true then entries with as determined as hidden
+	 *                            by the OS (e.g. starting with . in Unix / Linux /
+	 *                            MacOS, hidden flag for windows) are removed from
+	 *                            the list
 	 * @param regexp              if provided is used to only select matching
 	 *                            entries, for example files ending in .java
 	 * @param regexpFilesOnly     does the regexp apply to both directories and
@@ -2408,6 +2621,8 @@ public class TextIOUtils {
 	 * @param addParentDirectory  If true then an entry will be made for the parent
 	 *                            directory ("..") at the top of the list
 	 * @return the ChoiceDescriptionData object which is ready to be used.
+	 * @see DirectoryListFilterType
+	 * @see DirectoryListOrderType
 	 */
 	public static ChoiceDescriptionData<DirectoryEntry> buildChoiceDescriptionDataFromDirectory(Path dir,
 			DirectoryListFilterType listFilterType, DirectoryListOrderType listOrderType, boolean excludeHiddenFiles,
@@ -2428,11 +2643,11 @@ public class TextIOUtils {
 			// serc and getParent will at that point fail
 			Path parentDir = dir.getParent();
 			if (parentDir != null) {
-				entries.add(0, new DirectoryEntry(PARENT_DIRECTORY, Type.DIRECTORY, parentDir));
+				entries.add(0, new DirectoryEntry(parentDirectoryName, Type.DIRECTORY, parentDir));
 			}
 		}
 		if (addCurrentDirectory) {
-			entries.add(0, new DirectoryEntry(CURRENT_DIRECTORY, Type.DIRECTORY, dir));
+			entries.add(0, new DirectoryEntry(currentDirectoryName, Type.DIRECTORY, dir));
 		}
 
 		List<ChoiceDescription<DirectoryEntry>> entriesChoices = entries.stream()
@@ -2456,16 +2671,26 @@ public class TextIOUtils {
 	 * From the given directory list the directory entries as strings subject to the
 	 * controls
 	 * 
+	 * Entries shown will depend on the selectionMode, so if the selection mode
+	 * limits choices to directories only directories will be shown, but a mode that
+	 * allows only files to be chosen will display the directories for navigation
+	 * purposes, but they cannot be chosen.
+	 * 
+	 * Note that for the selection Modes that support navigation it is not possible
+	 * to navigate above the initially provided start directory, though navigation
+	 * back up to it is allowed.
+	 * 
+	 * @param prompt             the prompt to use when asking for input
 	 * @param dir                directory to list
 	 * @param selectionMode      what choices to allow, this will influence what
 	 *                           content is chosen and thus indirectly may override
 	 *                           sort order for some options (e.g. if only files can
 	 *                           be selected then no subdirectories will be shown)
-	 * @param listOrderType      how to order the result, directories first, files
-	 *                           first, or both (each segment is in alphabetical
-	 *                           order)
-	 * @param excludeHiddenFiles if true will not list entries that are hidden by OS
-	 *                           convention
+	 * @param listOrderType      how the resulting entries should be ordered
+	 * @param excludeHiddenFiles if true then entries with as determined as hidden
+	 *                           by the OS (e.g. starting with . in Unix / Linux /
+	 *                           MacOS, hidden flag for windows) are removed from
+	 *                           the list
 	 * @param regexp             if provided is used to only select matching
 	 *                           entries, for example files ending in .java
 	 * @param regexpFilesOnly    does the regexp apply to both directories and files
@@ -2476,7 +2701,12 @@ public class TextIOUtils {
 	 * @param addAbandon         If true then the abandon option will be added at
 	 *                           the end of the list and made the default
 	 * @return the DirectoryEntry selected or null if the abandon choice was taken
-	 * @throws IOException
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
+	 * 
+	 * @see DirectoryEntry
+	 * @see DirectorySelectionMode
+	 * @see DirectoryListOrderType
 	 */
 	public static DirectoryEntry choseFromDirectory(String prompt, String dir, DirectorySelectionMode selectionMode,
 			DirectoryListOrderType listOrderType, boolean excludeHiddenFiles, String regexp, boolean regexpFilesOnly,
@@ -2487,18 +2717,29 @@ public class TextIOUtils {
 
 	/**
 	 * From the given directory list the directory entries as strings subject to the
-	 * controls
+	 * controls.
 	 * 
+	 * Entries shown will depend on the selectionMode, so if the selection mode
+	 * limits choices to directories only directories will be shown, but a mode that
+	 * allows only files to be chosen will display the directories for navigation
+	 * purposes, but they cannot be chosen.
+	 * 
+	 * Note that for the selection Modes that support navigation it is not possible
+	 * to navigate above the initially provided start directory, though navigation
+	 * back up to it is allowed.
+	 * 
+	 * 
+	 * @param prompt             the prompt to use when asking for input
 	 * @param dir                directory to list
 	 * @param selectionMode      what choices to allow, this will influence what
 	 *                           content is chosen and thus indirectly may override
 	 *                           sort order for some options (e.g. if only files can
 	 *                           be selected then no subdirectories will be shown)
-	 * @param listOrderType      how to order the result, directories first, files
-	 *                           first, or both (each segment is in alphabetical
-	 *                           order)
-	 * @param excludeHiddenFiles if true will not list entries that are hidden by OS
-	 *                           convention
+	 * @param listOrderType      how the resulting entries should be ordered
+	 * @param excludeHiddenFiles if true then entries with as determined as hidden
+	 *                           by the OS (e.g. starting with . in Unix / Linux /
+	 *                           MacOS, hidden flag for windows) are removed from
+	 *                           the list
 	 * @param regexp             if provided is used to only select matching
 	 *                           entries, for example files ending in .java
 	 * @param regexpFilesOnly    does the regexp apply to both directories and files
@@ -2509,7 +2750,12 @@ public class TextIOUtils {
 	 * @param addAbandon         If true then the abandon option will be added at
 	 *                           the end of the list and made the default
 	 * @return the DirectoryEntry selected or null if the abandon choice was taken
-	 * @throws IOException
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input.
+	 * 
+	 * @see DirectoryEntry
+	 * @see DirectorySelectionMode
+	 * @see DirectoryListOrderType
 	 */
 	public static DirectoryEntry choseFromDirectory(String prompt, Path dir, DirectorySelectionMode selectionMode,
 			DirectoryListOrderType listOrderType, boolean excludeHiddenFiles, String regexp, boolean regexpFilesOnly,
@@ -2539,7 +2785,7 @@ public class TextIOUtils {
 		}
 		// if what has been chosen is a directory AND it's the current directory AND we
 		// are allowing directories to be selected as a leaf return it
-		if ((directoryEntry.getType() == Type.DIRECTORY) && (directoryEntry.getName().equals(CURRENT_DIRECTORY))
+		if ((directoryEntry.getType() == Type.DIRECTORY) && (directoryEntry.getName().equals(currentDirectoryName))
 				&& selectionMode.isDirectoryAllowedAsLeaf()) {
 			return directoryEntry;
 		}
@@ -2555,9 +2801,10 @@ public class TextIOUtils {
 	 * ask for the date / time with a timezone requested by name and offering a
 	 * default of the current TZ
 	 * 
-	 * @param prompt
-	 * @return
-	 * @throws IOException
+	 * @param prompt the prompt to use when asking for input
+	 * @return a string representing the entered date time and tz
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
 	 */
 	public static String getISODateTimeTimeZone(String prompt) throws IOException {
 		return getISODateTimeTimeZone(prompt, true, true, true);
@@ -2572,9 +2819,10 @@ public class TextIOUtils {
 	 * 
 	 * The UI will use the current time / date as the default values
 	 * 
-	 * @param prompt
-	 * @return
-	 * @throws IOException
+	 * @param prompt the prompt to use when asking for input
+	 * @return a string representing the entered date and time
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
 	 */
 	public static String getISODateTime(String prompt) throws IOException {
 		return getISODateTime(prompt, false);
@@ -2589,10 +2837,11 @@ public class TextIOUtils {
 	 * 
 	 * The UI will use the current time / date as the default values
 	 * 
-	 * @param prompt
-	 * @param askForTimezone
-	 * @return
-	 * @throws IOException
+	 * @param prompt         the prompt to use when asking for input
+	 * @param askForTimezone if true the user will be asked to select a timezone
+	 * @return a string representing the entered data time and tz
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
 	 */
 	public static String getISODateTime(String prompt, boolean askForTimezone) throws IOException {
 		return getISODateTimeTimeZone(prompt, askForTimezone, true, true);
@@ -2607,14 +2856,13 @@ public class TextIOUtils {
 	 * 
 	 * The UI will use the current time / date as the default values
 	 * 
-	 * @param prompt
-	 * @param askForTimezone
-	 * @return
-	 * @throws IOException
+	 * @param prompt the prompt to use when asking for input
+	 * @return The entered data time, note this is local so there is no timezone
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
 	 */
 	public static LocalDateTime getISOLocalDateTime(String prompt) throws IOException {
 		return getISOZonedDateTime(prompt, false, false, false, LocalDateTime.MIN, LocalDateTime.MAX).toLocalDateTime();
-		// return getISODateTimeTimeZone(prompt, askForTimezone, true, true);
 	}
 
 	/**
@@ -2649,12 +2897,15 @@ public class TextIOUtils {
 	 * If defaultToCurrentOffsett is true then the current offser in hours and mins
 	 * will be offered as the TZ offset hours and mins
 	 * 
-	 * @param prompt
-	 * @param askForTimezone
-	 * @param askForTimezoneName
-	 * @param defaultToCurrentTimezone
-	 * @return
-	 * @throws IOException
+	 * @param prompt                   the prompt to use when asking for input
+	 * @param askForTimezone           if true the user will ba asked for a timezone
+	 * @param askForTimezoneName       if asking for timezone they will be asked by
+	 *                                 name, if false by offset
+	 * @param defaultToCurrentTimezone if trie the timezone will default to the
+	 *                                 current if they user just presses return
+	 * @return a string representing the entered date time and tz
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
 	 */
 	public static String getISODateTimeTimeZone(String prompt, boolean askForTimezone, boolean askForTimezoneName,
 			boolean defaultToCurrentTimezone) throws IOException {
@@ -2694,12 +2945,17 @@ public class TextIOUtils {
 	 * If defaultToCurrentOffsett is true then the current offser in hours and mins
 	 * will be offered as the TZ offset hours and mins
 	 * 
-	 * @param prompt
-	 * @param askForTimezone
-	 * @param askForTimezoneName
-	 * @param defaultToCurrentTimezone
-	 * @return
-	 * @throws IOException
+	 * @param prompt                   the prompt to use when asking for input
+	 * @param askForTimezone           if true the user will ba asked for a timezone
+	 * @param askForTimezoneName       if asking for timezone they will be asked by
+	 *                                 name, if false by offset
+	 * @param defaultToCurrentTimezone if trie the timezone will default to the
+	 *                                 current if they user just presses return
+	 * @param mindtg                   the entered info must be &gt;= this
+	 * @param maxdtg                   the entered info must be &lt;= this
+	 * @return a string representing the entered date time and tz
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
 	 */
 	public static String getISODateTimeTimeZone(String prompt, boolean askForTimezone, boolean askForTimezoneName,
 			boolean defaultToCurrentTimezone, LocalDateTime mindtg, LocalDateTime maxdtg) throws IOException {
@@ -2741,12 +2997,17 @@ public class TextIOUtils {
 	 * If defaultToCurrentOffsett is true then the current offser in hours and mins
 	 * will be offered as the TZ offset hours and mins
 	 * 
-	 * @param prompt
-	 * @param askForTimezone
-	 * @param askForTimezoneName
-	 * @param defaultToCurrentTimezone
-	 * @return
-	 * @throws IOException
+	 * @param prompt                   the prompt to use when asking for input
+	 * @param askForTimezone           if true the user will ba asked for a timezone
+	 * @param askForTimezoneName       if asking for timezone they will be asked by
+	 *                                 name, if false by offset
+	 * @param defaultToCurrentTimezone if true the timezone will default to the
+	 *                                 current if they user just presses return
+	 * @param mindtg                   the entered info must be &gt;= this
+	 * @param maxdtg                   the entered info must be &lt;= this
+	 * @return a string representing the entered date time and tz
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
 	 */
 	public static ZonedDateTime getISOZonedDateTime(String prompt, boolean askForTimezone, boolean askForTimezoneName,
 			boolean defaultToCurrentTimezone, LocalDateTime mindtg, LocalDateTime maxdtg) throws IOException {
@@ -2778,22 +3039,29 @@ public class TextIOUtils {
 	}
 
 	/**
+	 * Asks the user to enter a full date, time and in the specified time zone
 	 * 
-	 * @param prompt
-	 * @param zoneId
-	 * @return
-	 * @throws IOException
+	 * @param prompt the prompt to use when asking for input
+	 * @param zoneId the timezone to use
+	 * @return a string representing the entered date time and tz
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
 	 */
 	public static String getISODateTimeTimeZone(String prompt, ZoneId zoneId) throws IOException {
 		return getISODateTimeTimeZone(prompt, zoneId, LocalDateTime.MIN, LocalDateTime.MAX);
 	}
 
 	/**
+	 * Asks the user to enter the data and time in the specified timezone where the
+	 * entered data must be &gt;= mindtg and &lt;= maxdtg
 	 * 
-	 * @param prompt
-	 * @param zoneId
-	 * @return
-	 * @throws IOException
+	 * @param prompt the prompt to use when asking for input
+	 * @param zoneId the timezone to use
+	 * @param mindtg the entered info must be &gt;= this
+	 * @param maxdtg the entered info must be &lt;= this
+	 * @return a string representing the entered date time and tz
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
 	 */
 	public static String getISODateTimeTimeZone(String prompt, ZoneId zoneId, LocalDateTime mindtg,
 			LocalDateTime maxdtg) throws IOException {
@@ -2801,11 +3069,16 @@ public class TextIOUtils {
 	}
 
 	/**
+	 * Asks the user to enter the data and time in the specified timezone where the
+	 * entered data must be &gt;= mindtg and &lt;= maxdtg
 	 * 
-	 * @param prompt
-	 * @param zoneId
-	 * @return
-	 * @throws IOException
+	 * @param prompt the prompt to use when asking for input
+	 * @param zoneId the timezone to use
+	 * @param mindtg the entered info must be &gt;= this
+	 * @param maxdtg the entered info must be &lt;= this
+	 * @return a string representing the entered date time and tz
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
 	 */
 	public static ZonedDateTime getISOZonedDateTimeTimeZone(String prompt, ZoneId zoneId, LocalDateTime mindtg,
 			LocalDateTime maxdtg) throws IOException {
@@ -2828,17 +3101,17 @@ public class TextIOUtils {
 	}
 
 	/**
-	 * prompts for an offset from GMP in terms of hours an mins, the resulting
+	 * prompts for an offset from GMT in terms of hours an mins, the resulting
 	 * string will be 01:00 (in the case of british summer time which is 1 hours
 	 * ahead of GMT, or 04:30) for India which is 4 1/2 hours ahead.
 	 * 
 	 * The UI will use gmt as the default values
 	 * 
-	 * @param prompt
-	 * @param askForTimezone
-	 * @param defaulToCurrentOffset
-	 * @return
-	 * @throws IOException
+	 * @param prompt the prompt to use when asking for input
+	 * @return the entered offset (default to the current offset if the user just
+	 *         presses return)
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
 	 */
 	public static String getISOTimeZoneOffset(String prompt) throws IOException {
 		return getISOTimeZoneOffset(prompt, true);
@@ -2854,11 +3127,12 @@ public class TextIOUtils {
 	 * If defaultToCurrentOffsett is true then the current offset in hours and mins
 	 * will be offered as the TZ offset hours and mins
 	 * 
-	 * @param prompt
-	 * @param askForTimezone
-	 * @param defaulToCurrentOffset
-	 * @return
-	 * @throws IOException
+	 * @param prompt                the prompt to use when asking for input
+	 * @param defaulToCurrentOffset if true default to the current offset if the
+	 *                              user just presses return
+	 * @return the entered offset
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
 	 */
 	public static String getISOTimeZoneOffset(String prompt, boolean defaulToCurrentOffset) throws IOException {
 		return getISOOffsetTimeZoneOffset(prompt, defaulToCurrentOffset).getId();
@@ -2874,11 +3148,12 @@ public class TextIOUtils {
 	 * If defaultToCurrentOffsett is true then the current offset in hours and mins
 	 * will be offered as the TZ offset hours and mins
 	 * 
-	 * @param prompt
-	 * @param askForTimezone
-	 * @param defaulToCurrentOffset
-	 * @return
-	 * @throws IOException
+	 * @param prompt                the prompt to use when asking for input
+	 * @param defaulToCurrentOffset if true default to the current offset if the
+	 *                              user just presses return
+	 * @return the entered offset
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
 	 */
 	public static ZoneOffset getISOOffsetTimeZoneOffset(String prompt, boolean defaulToCurrentOffset)
 			throws IOException {
@@ -2924,19 +3199,43 @@ public class TextIOUtils {
 	 * America/North_Dakota then selection will progress from that point through the
 	 * TZ tree.
 	 * 
-	 * @param prompt
-	 * @param defaulToCurrentOffset
-	 * @return
-	 * @throws IOException
+	 * @param prompt                the prompt to use when asking for input
+	 * @param defaulToCurrentOffset if true default to the current offset if the
+	 *                              user just presses return
+	 * @return the entered offset
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
 	 */
 	private static Map<String, Set<String>> tzRegions;
 	private static Set<String> tzTopLevel;
 	private final static String TZ_SEPARATOR = "/";
 
+	/**
+	 * 
+	 * Gets the name of a timezone
+	 * 
+	 * @param prompt                  the prompt to use when asking for input
+	 * @param defaulToCurrentTimeZone if true will offer the current tx as a default
+	 *                                if the user presses return
+	 * @return a string of the selected tx
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
+	 */
 	public static String getTimeZoneNameByName(String prompt, boolean defaulToCurrentTimeZone) throws IOException {
 		return getTimeZoneByName(prompt, defaulToCurrentTimeZone).toString();
 	}
 
+	/**
+	 * Asks the user to select a timezone by name, if they press return and
+	 * defaultToCurrentTimeZOne is true then the current TZ is used
+	 * 
+	 * @param prompt                  the prompt to use when asking for input
+	 * @param defaulToCurrentTimeZone if true default to the current timezone if the
+	 *                                user just presses return
+	 * @return the entered offset
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
+	 */
 	public static ZoneId getTimeZoneByName(String prompt, boolean defaulToCurrentTimeZone) throws IOException {
 		setupTZDataStructures();
 		var currentOptionsSet = tzTopLevel;
@@ -2987,7 +3286,7 @@ public class TextIOUtils {
 	}
 
 	/**
-	 * 
+	 * if we need the TZ stuff build it, but on demand
 	 */
 	private static void setupTZDataStructures() {
 		// if needed do lazy initialization of the TZ structures
@@ -3027,9 +3326,10 @@ public class TextIOUtils {
 	 * 
 	 * The return string is of the format HH:MM:SS
 	 * 
-	 * @param prompt
-	 * @return
-	 * @throws IOException
+	 * @param prompt the prompt to use when asking for input
+	 * @return the entred time
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
 	 */
 	public static String getISOTime(String prompt) throws IOException {
 		return getISOTime(prompt, LocalTime.MIN, LocalTime.MAX);
@@ -3041,9 +3341,12 @@ public class TextIOUtils {
 	 * 
 	 * The return string is of the format HH:MM:SS
 	 * 
-	 * @param prompt
-	 * @return
-	 * @throws IOException
+	 * @param prompt  the prompt to use when asking for input
+	 * @param mintime the entered time must be &gt;= this
+	 * @param maxtime the entered time must be &lt;= this
+	 * @return the entered time
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
 	 */
 	public static String getISOTime(String prompt, LocalTime mintime, LocalTime maxtime) throws IOException {
 		return getISOLocalTime(prompt, mintime, maxtime).format(DateTimeFormatter.ISO_LOCAL_TIME);
@@ -3055,9 +3358,10 @@ public class TextIOUtils {
 	 * 
 	 * The return string is of the format HH:MM:SS
 	 * 
-	 * @param prompt
-	 * @return
-	 * @throws IOException
+	 * @param prompt the prompt to use when asking for input
+	 * @return the entered time
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
 	 */
 	public static LocalTime getISOLocalTime(String prompt) throws IOException {
 		return getISOLocalTime(prompt, LocalTime.MIN, LocalTime.MAX);
@@ -3069,9 +3373,13 @@ public class TextIOUtils {
 	 * 
 	 * The return string is of the format HH:MM:SS
 	 * 
-	 * @param prompt
-	 * @return
-	 * @throws IOException
+	 * @param prompt the prompt to use when asking for input
+	 * @return the entered time
+	 * @param mintime the entered time must be &gt;= this
+	 * @param maxtime the entered time must be &lt;= this
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
+	 * 
 	 */
 	public static LocalTime getISOLocalTime(String prompt, LocalTime mintime, LocalTime maxtime) throws IOException {
 		if (mintime.isAfter(maxtime)) {
@@ -3122,9 +3430,10 @@ public class TextIOUtils {
 	 * 
 	 * The return string is of the format YYYY-MM-DD
 	 * 
-	 * @param prompt
-	 * @return
-	 * @throws IOException
+	 * @param prompt the prompt to use when asking for input
+	 * @return the entered date
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
 	 */
 	public static String getISODate(String prompt) throws IOException {
 		return getISODate(prompt, LocalDate.MIN, LocalDate.MAX);
@@ -3139,9 +3448,12 @@ public class TextIOUtils {
 	 * 
 	 * The return string is of the format YYYY-MM-DD
 	 * 
-	 * @param prompt
-	 * @return
-	 * @throws IOException
+	 * @param prompt  the prompt to use when asking for input
+	 * @param mindate the entered date must be &gt;= this
+	 * @param maxdate the entered date must be &lt;= this
+	 * @return the entered date
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
 	 */
 	public static String getISODate(String prompt, LocalDate mindate, LocalDate maxdate) throws IOException {
 		return getISOLocalDate(prompt, mindate, maxdate).format(DateTimeFormatter.ISO_DATE);
@@ -3156,9 +3468,10 @@ public class TextIOUtils {
 	 * 
 	 * The return string is of the format YYYY-MM-DD
 	 * 
-	 * @param prompt
-	 * @return
-	 * @throws IOException
+	 * @param prompt the prompt to use when asking for input
+	 * @return the entered date
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
 	 */
 	public static LocalDate getISOLocalDate(String prompt) throws IOException {
 		return getISOLocalDate(prompt, LocalDate.MIN, LocalDate.MAX);
@@ -3173,9 +3486,12 @@ public class TextIOUtils {
 	 * 
 	 * The return string is of the format YYYY-MM-DD
 	 * 
-	 * @param prompt
-	 * @return
-	 * @throws IOException
+	 * @param prompt  the prompt to use when asking for input
+	 * @param mindate the entered date must be &gt;= this
+	 * @param maxdate the entered date must be &lt;= this
+	 * @return the entered date
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
 	 */
 	public static LocalDate getISOLocalDate(String prompt, LocalDate mindate, LocalDate maxdate) throws IOException {
 		if (maxdate.isBefore(mindate)) {
@@ -3225,6 +3541,13 @@ public class TextIOUtils {
 		return LocalDate.of(year, month, day);
 	}
 
+	/**
+	 * Converts a number to a minimum of two digits in the resulting string
+	 * 
+	 * @param number the number to convert
+	 * @return the String representation at a minimum of 2 characters (i.e with
+	 *         leading zero if required)
+	 */
 	public static String toTwoDigit(int number) {
 		if (number <= -10) {
 			return "" + number;
@@ -3237,6 +3560,13 @@ public class TextIOUtils {
 		}
 	}
 
+	/**
+	 * Converts a number to a minimum of four digits in the resulting string
+	 * 
+	 * @param number the number to convert
+	 * @return the String representation at a minimum of 4 characters (i.e with
+	 *         leading zeros if required)
+	 */
 	public static String toFourDigit(int number) {
 		if (number <= -1000) {
 			return "" + number;
@@ -3259,11 +3589,33 @@ public class TextIOUtils {
 		}
 	}
 
+	/**
+	 * Given an enum constant builds a choice description data for all the values of
+	 * the enum class, setting the specific value of the enum constant as the
+	 * default
+	 * 
+	 * @param <T>          the enum class
+	 * @param enumconstant the enum value to use to determine the enum and the
+	 *                     default
+	 * @return the generated ChoiceDescriptionData
+	 */
 	public static <T extends Enum<T>> ChoiceDescriptionData<Enum<T>> buildChoiceDescriptionDataFromSampleEnumValue(
 			Enum<T> enumconstant) {
 		return buildChoiceDescriptionDataFromSampleEnumValue(enumconstant, true);
 	}
 
+	/**
+	 * Given an enum constant builds a choice description data for all the values of
+	 * the enum class, if setAsDefault is true setting the specific value of the
+	 * enum constant as the default
+	 * 
+	 * @param <T>          the enum class
+	 * @param enumconstant the enum value to use to determine the enum and the
+	 *                     default
+	 * @param setAsDefault if true a default entry is set for the enum value, if
+	 *                     false no default is created
+	 * @return the generated ChoiceDescriptionData
+	 */
 	@SuppressWarnings("unchecked")
 	public static <T extends Enum<T>> ChoiceDescriptionData<Enum<T>> buildChoiceDescriptionDataFromSampleEnumValue(
 			Enum<T> enumconstant, boolean setAsDefault) {
@@ -3272,8 +3624,8 @@ public class TextIOUtils {
 		if (setAsDefault) {
 			ChoiceDescription<Enum<T>> defaultChoice = cdd.locateChoiceDescriptionByParam(enumconstant);
 			if (defaultChoice == null) {
-				// this shoudl not be possible as we build it using all of the enum values but
-				// defensive programing and all that
+				// this should not be possible as we build it using all of the enum values but
+				// defensive programming and all that
 				System.err.println("Major programming problem, cannot locate the CDD with param " + enumconstant
 						+ " unable to set it as default");
 			} else {
@@ -3283,11 +3635,27 @@ public class TextIOUtils {
 		return cdd;
 	}
 
+	/**
+	 * Given the enum class build a ChoiceDescriptionData representing all of the
+	 * constants in the enum
+	 * 
+	 * @param <T>       The class of the enum
+	 * @param enumclass The class of the enum
+	 * @return the generated ChoiceDescriptionData
+	 */
 	public static <T extends Enum<T>> ChoiceDescriptionData<Enum<T>> buildChoiceDescriptionDataFromEnumClass(
 			Class<? extends Enum<T>> enumclass) {
 		return buildChoiceDescriptionDataFromEnumValues(enumclass.getEnumConstants());
 	}
 
+	/**
+	 * Given an array of possible the enum constants build a ChoiceDescriptionData
+	 * representing the supplied values
+	 * 
+	 * @param <T>           The class of the enum
+	 * @param enumconstants An array of enum constants
+	 * @return the generated ChoiceDescriptionData
+	 */
 	public static <T extends Enum<T>> ChoiceDescriptionData<Enum<T>> buildChoiceDescriptionDataFromEnumValues(
 			Enum<T> enumconstants[]) {
 		ChoiceDescriptionData<Enum<T>> cdd = new ChoiceDescriptionData<>();

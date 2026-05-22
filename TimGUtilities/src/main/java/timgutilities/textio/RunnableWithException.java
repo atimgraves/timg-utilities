@@ -36,6 +36,15 @@ SOFTWARE.
  */
 package timgutilities.textio;
 
+/**
+ * a runnable for command execution,
+ */
 public interface RunnableWithException {
+	/**
+	 * a runnable that can throw exceptions, but also returns a result
+	 * 
+	 * @return a string describing the result
+	 * @throws Exception if there was any problem executing the code
+	 */
 	public String run() throws Exception;
 }

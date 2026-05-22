@@ -48,12 +48,20 @@ public class RunnableCommand {
 	private RunnableWithException runCmd;
 
 	/**
+	 * gets the name of the command
+	 * 
 	 * @return the commandName
 	 */
 	public String getCommandName() {
 		return commandName;
 	}
 
+	/**
+	 * create an instance
+	 * 
+	 * @param commandName the name to use in the selection
+	 * @param runCmd      the runnable to execute if selected
+	 */
 	public RunnableCommand(String commandName, RunnableWithException runCmd) {
 		super();
 		this.commandName = commandName;
@@ -61,10 +69,10 @@ public class RunnableCommand {
 	}
 
 	/**
-	 * executr the command, if an exception is thrownreturn the details, otherwise
+	 * execute the command, if an exception is thrown return the details, otherwise
 	 * return the string output from the command
 	 * 
-	 * @return
+	 * @return the result obtained form running the command
 	 */
 	public String runIt() {
 		try {
