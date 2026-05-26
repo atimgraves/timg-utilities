@@ -3274,7 +3274,8 @@ public class TextIOUtils {
 	 * back up to it is allowed.
 	 * 
 	 * 
-	 * @param prompt             the prompt to use when asking for input
+	 * @param prompt             the prompt to use when asking for input, if null or
+	 *                           zero length then the selectionMode prompt is used.
 	 * @param dir                directory to list
 	 * @param selectionMode      what choices to allow, this will influence what
 	 *                           content is chosen and thus indirectly may override
@@ -3315,7 +3316,10 @@ public class TextIOUtils {
 				selectionMode.getDirectoryListFilterType(), listOrderType, excludeHiddenFiles, regexp, regexpFilesOnly,
 				nameAndType, addAbandon, selectionMode.isCurrentDirectoryIncludedAsOption(),
 				selectionMode.isParentDirectoryIncludedAsOption());
-		DirectoryEntry directoryEntry = getParamChoice(prompt + " (" + dir.toString() + ")", cdd);
+		DirectoryEntry directoryEntry = getParamChoice(
+				(((prompt == null || (prompt.length() == 0))) ? selectionMode.getDefaultPrompt() : prompt) + " ("
+						+ dir.toString() + ")",
+				cdd);
 
 		if (directoryEntry == null) {
 			// they chose the abandon, pass that back
