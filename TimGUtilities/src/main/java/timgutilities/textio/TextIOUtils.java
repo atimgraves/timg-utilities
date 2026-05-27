@@ -3213,6 +3213,282 @@ public class TextIOUtils {
 	}
 
 	/**
+	 * Simple version of the choseFromDirectory methods.
+	 * 
+	 * Starting from the given directory asks the user to select an existing file to
+	 * open, they can navigate around the directories, but cannot chose a directory
+	 * itself. Hidden files / directories are not listed
+	 * 
+	 * @param prompt the prompt to use when asking for input
+	 * @param dir    directory to start in
+	 * @return the selected file, OR, null if the cancel option was chosen
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
+	 * 
+	 * @see DirectoryEntry
+	 */
+	public static DirectoryEntry choseFileToOpen(String prompt, String dir) throws IOException {
+		return choseFileToOpen(prompt, Path.of(dir), null);
+	}
+
+	/**
+	 * Simple version of the choseFromDirectory methods.
+	 * 
+	 * Starting from the given directory asks the user to select an existing file to
+	 * open, they can navigate around the directories, but cannot chose a directory
+	 * itself. Hidden files / directories are not listed
+	 * 
+	 * @param prompt the prompt to use when asking for input
+	 * @param dir    directory to start in
+	 * @return the selected file, OR, null if the cancel option was chosen
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
+	 * 
+	 * @see DirectoryEntry
+	 */
+	public static DirectoryEntry choseFileToOpen(String prompt, Path dir) throws IOException {
+		return choseFileToOpen(prompt, dir, null);
+	}
+
+	/**
+	 * Simple version of the choseFromDirectory methods.
+	 * 
+	 * Starting from the given directory asks the user to select an existing file to
+	 * open, they can navigate around the directories, but cannot chose a directory
+	 * itself.
+	 * 
+	 * Filter files only based on the regexp, for example "^.*\\.[Xx][Mm][Ll]$" will
+	 * only display files ending in .xml (in any case combination). Hidden files /
+	 * directories are not listed.
+	 * 
+	 * @param prompt the prompt to use when asking for input
+	 * @param dir    directory to start in
+	 * @param regexp if not null only files matching the regexp will be displayed,
+	 *               directories are not filtered
+	 * @return the selected file, OR, null if the cancel option was chosen
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
+	 * 
+	 * @see DirectoryEntry
+	 */
+	public static DirectoryEntry choseFileToOpen(String prompt, String dir, String regexp) throws IOException {
+		return choseFileToOpen(prompt, Path.of(dir), null);
+	}
+
+	/**
+	 * Simple version of the choseFromDirectory methods.
+	 * 
+	 * Starting from the given directory asks the user to select an existing file to
+	 * open, they can navigate around the directories, but cannot chose a directory
+	 * itself.
+	 * 
+	 * Filter files only based on the regexp, for example "^.*\\.[Xx][Mm][Ll]$" will
+	 * only display files ending in .xml (in any case combination). Hidden files /
+	 * directories are not listed.
+	 * 
+	 * @param prompt the prompt to use when asking for input
+	 * @param dir    directory to start in
+	 * @param regexp if not null only files matching the regexp will be displayed,
+	 *               directories are not filtered
+	 * @return the selected file, OR, null if the cancel option was chosen
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
+	 * 
+	 * @see DirectoryEntry
+	 */
+	public static DirectoryEntry choseFileToOpen(String prompt, Path dir, String regexp) throws IOException {
+		return choseFromDirectory(prompt, dir, DirectorySelectionMode.SELECT_DIRECTORY_AS_NAVIGATION_OR_FILE_AS_LEAF,
+				DirectoryListOrderType.DIRECTORIES_FIRST, true, regexp, true, true, true);
+	}
+
+	/**
+	 * Simple version of the choseFromDirectory methods.
+	 * 
+	 * Starting from the given directory asks the user to select an existing
+	 * directory to open, they can navigate around the directories, files are not
+	 * shown. One use case would be to select a directory to write a new file into.
+	 * 
+	 * Hidden files / directories are not listed.
+	 * 
+	 * @param prompt the prompt to use when asking for input
+	 * @param dir    directory to start in
+	 * @return the selected file, OR, null if the cancel option was chosen
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
+	 * 
+	 * @see DirectoryEntry
+	 */
+	public static DirectoryEntry choseDirectory(String prompt, String dir) throws IOException {
+		return choseDirectory(prompt, Path.of(dir), null);
+	}
+
+	/**
+	 * Simple version of the choseFromDirectory methods.
+	 * 
+	 * Starting from the given directory asks the user to select an existing
+	 * directory to open, they can navigate around the directories, files are not
+	 * shown. One use case would be to select a directory to write a new file into.
+	 * 
+	 * Hidden files / directories are not listed.
+	 * 
+	 * @param prompt the prompt to use when asking for input
+	 * @param dir    directory to start in
+	 * @return the selected file, OR, null if the cancel option was chosen
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
+	 * 
+	 * @see DirectoryEntry
+	 */
+	public static DirectoryEntry choseDirectory(String prompt, Path dir) throws IOException {
+		return choseDirectory(prompt, dir, null);
+	}
+
+	/**
+	 * Simple version of the choseFromDirectory methods.
+	 * 
+	 * Starting from the given directory asks the user to select an existing
+	 * directory to open, they can navigate around the directories, files are not
+	 * shown. One use case would be to select a directory to write a new file into.
+	 * 
+	 * Filter directories based on the regexp. Hidden files / directories are not
+	 * listed.
+	 * 
+	 * @param prompt the prompt to use when asking for input
+	 * @param dir    directory to start in
+	 * @param regexp if not null only directories matching the regexp will be
+	 *               displayed
+	 * @return the selected file, OR, null if the cancel option was chosen
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
+	 * 
+	 * @see DirectoryEntry
+	 */
+	public static DirectoryEntry choseDirectory(String prompt, String dir, String regexp) throws IOException {
+		return choseDirectory(prompt, Path.of(dir), null);
+	}
+
+	/**
+	 * Simple version of the choseFromDirectory methods.
+	 * 
+	 * Starting from the given directory asks the user to select an existing
+	 * directory to open, they can navigate around the directories, files are not
+	 * shown. One use case would be to select a directory to write a new file.
+	 * 
+	 * Filter directories based on the regexp. Hidden files / directories are not
+	 * listed.
+	 * 
+	 * @param prompt the prompt to use when asking for input
+	 * @param dir    directory to start in
+	 * @param regexp if not null only directories matching the regexp will be
+	 *               displayed
+	 * @return the selected file, OR, null if the cancel option was chosen
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
+	 * 
+	 * @see DirectoryEntry
+	 */
+	public static DirectoryEntry choseDirectory(String prompt, Path dir, String regexp) throws IOException {
+		return choseFromDirectory(prompt, dir, DirectorySelectionMode.SELECT_DIRECTORY_AS_NAVIGATION_OR_LEAF,
+				DirectoryListOrderType.DIRECTORIES_FIRST, true, regexp, false, true, true);
+	}
+
+	/**
+	 * Simple version of the choseFromDirectory methods.
+	 * 
+	 * Starting from the given directory asks the user to select an existing
+	 * directory to open, they can navigate around the directories, files are not
+	 * shown. One use case would be to select a directory to write a new file, or an
+	 * existing file to overwrite.
+	 * 
+	 * Hidden files / directories are not listed.
+	 * 
+	 * @param prompt the prompt to use when asking for input
+	 * @param dir    directory to start in
+	 * @return the selected file, OR, null if the cancel option was chosen
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
+	 * 
+	 * @see DirectoryEntry
+	 */
+	public static DirectoryEntry choseDirectoryOrFile(String prompt, String dir) throws IOException {
+		return choseDirectoryOrFile(prompt, Path.of(dir), null);
+	}
+
+	/**
+	 * Simple version of the choseFromDirectory methods.
+	 * 
+	 * Starting from the given directory asks the user to select an existing
+	 * directory to open, they can navigate around the directories, files are not
+	 * shown. One use case would be to select a directory to write a new file, or an
+	 * existing file to overwrite.
+	 * 
+	 * Hidden files / directories are not listed.
+	 * 
+	 * @param prompt the prompt to use when asking for input
+	 * @param dir    directory to start in
+	 * @return the selected file, OR, null if the cancel option was chosen
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
+	 * 
+	 * @see DirectoryEntry
+	 */
+	public static DirectoryEntry choseDirectoryOrFile(String prompt, Path dir) throws IOException {
+		return choseDirectoryOrFile(prompt, dir, null);
+	}
+
+	/**
+	 * Simple version of the choseFromDirectory methods.
+	 * 
+	 * Starting from the given directory asks the user to select an existing
+	 * directory to open, they can navigate around the directories, files are not
+	 * shown. One use case would be to select a directory to write a new file, or an
+	 * existing file to overwrite.
+	 * 
+	 * Filter files based on the regexp, directories are not filtered. For example
+	 * "^.*\\.[Xx][Mm][Ll]$" will only display files ending in .xml (in any case
+	 * combination). Hidden files / directories are not listed.
+	 * 
+	 * @param prompt the prompt to use when asking for input
+	 * @param dir    directory to start in
+	 * @param regexp if not null only files matching the regexp will be displayed
+	 * @return the selected file, OR, null if the cancel option was chosen
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
+	 * 
+	 * @see DirectoryEntry
+	 */
+	public static DirectoryEntry choseDirectoryOrFile(String prompt, String dir, String regexp) throws IOException {
+		return choseDirectoryOrFile(prompt, Path.of(dir), null);
+	}
+
+	/**
+	 * Simple version of the choseFromDirectory methods.
+	 * 
+	 * Starting from the given directory asks the user to select an existing
+	 * directory to open, they can navigate around the directories, files are not
+	 * shown. One use case would be to select a directory to write a new file, or an
+	 * existing file to overwrite.
+	 * 
+	 * Filter files based on the regexp, directories are not filtered. For example
+	 * "^.*\\.[Xx][Mm][Ll]$" will only display files ending in .xml (in any case
+	 * combination). Hidden files / directories are not listed.
+	 * 
+	 * @param prompt the prompt to use when asking for input
+	 * @param dir    directory to start in
+	 * @param regexp if not null only files matching the regexp will be displayed
+	 * @return the selected file, OR, null if the cancel option was chosen
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
+	 * 
+	 * @see DirectoryEntry
+	 */
+	public static DirectoryEntry choseDirectoryOrFile(String prompt, Path dir, String regexp) throws IOException {
+		return choseFromDirectory(prompt, dir,
+				DirectorySelectionMode.SELECT_DIRECTORY_AS_NAVIGATION_OR_LEAF_SELECT_FILE_AS_LEAF,
+				DirectoryListOrderType.DIRECTORIES_FIRST, true, regexp, true, true, true);
+	}
+
+	/**
 	 * From the given directory list the directory entries as strings subject to the
 	 * controls
 	 * 
