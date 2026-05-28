@@ -46,12 +46,20 @@ package timgutilities.textio;
  * 
  * description is used to display any descriptive text - can be null
  * 
- * additional is further text the rotines may somtimes display this
+ * additional is further text the routines may sometimes display this
  * 
- * param is a typed object and all choice descriptions int he same choice
- * description data must be of the same type. for some selecion methods the
- * param can be returned so you don;t have to handle mapping the return in a
+ * param is a typed object and all choice descriptions in the same choice
+ * description data must be of the same type. for some selection methods the
+ * param can be returned so you don't have to handle mapping the return in a
  * lookup or anything like that
+ * 
+ * notSelectable means that regardless of what the select methods do selected
+ * will never be set to true, this is used in some situations where
+ * 
+ * selected is used when multiple options can be selected, for examples
+ * selecting multiple files for a zip, or multiple elements in an enum. If it is
+ * set then when getting the string data for display (the getData method) "(*)"
+ * will be displayed after the name and before the description.
  * 
  * Additionally this can be a separator - in this case it's printed out by the
  * choice routines, but is not selectable.
@@ -71,9 +79,11 @@ public class ChoiceDescription<P> implements Comparable<ChoiceDescription<?>> {
 	 * Used by getText if the results should be separated
 	 */
 	public final static String FIELD_SEPARATOR = ", ";
-	private String option, description, additional;
-	private boolean separatorEntry = false;
-	private P param;
+	private final String option, description, additional;
+	private final boolean separatorEntry;
+	private final P param;
+	private boolean selected = false;
+	private boolean notSelectable = false;
 
 	/**
 	 * Create an instance only containing an option. The description, additional are
@@ -82,7 +92,7 @@ public class ChoiceDescription<P> implements Comparable<ChoiceDescription<?>> {
 	 * @param option the text of the option
 	 */
 	public ChoiceDescription(String option) {
-		this(option, null, null, false, null);
+		this(option, null, null, false, null, false);
 	}
 
 	/**
@@ -93,7 +103,7 @@ public class ChoiceDescription<P> implements Comparable<ChoiceDescription<?>> {
 	 * @param description the text of the description
 	 */
 	public ChoiceDescription(String option, String description) {
-		this(option, description, null, false, null);
+		this(option, description, null, false, null, false);
 	}
 
 	/**
@@ -105,7 +115,7 @@ public class ChoiceDescription<P> implements Comparable<ChoiceDescription<?>> {
 	 * @param additional  the text of the additional field
 	 */
 	public ChoiceDescription(String option, String description, String additional) {
-		this(option, description, additional, false, null);
+		this(option, description, additional, false, null, false);
 	}
 
 	/**
@@ -117,7 +127,7 @@ public class ChoiceDescription<P> implements Comparable<ChoiceDescription<?>> {
 	 *                       chooser will display it but not let it be selected
 	 */
 	public ChoiceDescription(String option, boolean separatorEntry) {
-		this(option, null, null, separatorEntry, null);
+		this(option, null, null, separatorEntry, null, separatorEntry);
 	}
 
 	/**
@@ -130,12 +140,12 @@ public class ChoiceDescription<P> implements Comparable<ChoiceDescription<?>> {
 	 *                       chooser will display it but not let it be selected
 	 */
 	public ChoiceDescription(String option, String description, boolean separatorEntry) {
-		this(option, description, null, separatorEntry, null);
+		this(option, description, null, separatorEntry, null, separatorEntry);
 	}
 
 	/**
 	 * Create an instance only containing an option, description and additional. The
-	 * param is set to null
+	 * param is set to null and notSelectable is set to true
 	 * 
 	 * @param option         the text of the option
 	 * @param description    the text of the description
@@ -144,7 +154,7 @@ public class ChoiceDescription<P> implements Comparable<ChoiceDescription<?>> {
 	 *                       chooser will display it but not let it be selected
 	 */
 	public ChoiceDescription(String option, String description, String additional, boolean separatorEntry) {
-		this(option, description, additional, separatorEntry, null);
+		this(option, description, additional, separatorEntry, null, separatorEntry);
 	}
 
 	/**
@@ -155,7 +165,20 @@ public class ChoiceDescription<P> implements Comparable<ChoiceDescription<?>> {
 	 * @param param  the param to associate with this option
 	 */
 	public ChoiceDescription(String option, P param) {
-		this(option, null, null, false, param);
+		this(option, null, null, false, param, false);
+	}
+
+	/**
+	 * Create an instance containing an option and associated parameter. The
+	 * description, additional are set to EMPTY_STRING.
+	 * 
+	 * @param option        the text of the option
+	 * @param param         the param to associate with this option
+	 * @param notSelectable marks this as not being selectable in multi choice
+	 *                      operations
+	 */
+	public ChoiceDescription(String option, P param, boolean notSelectable) {
+		this(option, null, null, false, param, notSelectable);
 	}
 
 	/**
@@ -167,7 +190,21 @@ public class ChoiceDescription<P> implements Comparable<ChoiceDescription<?>> {
 	 * @param param       the param to associate with this option
 	 */
 	public ChoiceDescription(String option, String description, P param) {
-		this(option, description, null, false, param);
+		this(option, description, null, false, param, false);
+	}
+
+	/**
+	 * Create an instance containing an option, description and associated
+	 * parameter. The additional is set to EMPTY_STRING.
+	 * 
+	 * @param option        the text of the option
+	 * @param description   the text of the description
+	 * @param param         the param to associate with this option
+	 * @param notSelectable marks this as not being selectable in multi choice
+	 *                      operations
+	 */
+	public ChoiceDescription(String option, String description, P param, boolean notSelectable) {
+		this(option, description, null, false, param, notSelectable);
 	}
 
 	/**
@@ -180,7 +217,22 @@ public class ChoiceDescription<P> implements Comparable<ChoiceDescription<?>> {
 	 * @param param       the param to associate with this option
 	 */
 	public ChoiceDescription(String option, String description, String additional, P param) {
-		this(option, description, additional, false, param);
+		this(option, description, additional, false, param, false);
+	}
+
+	/**
+	 * Create an instance containing an option, description, additional and
+	 * associated parameter.
+	 * 
+	 * @param option        the text of the option
+	 * @param description   the text of the description
+	 * @param additional    the text of the description
+	 * @param param         the param to associate with this option
+	 * @param notSelectable marks this as not being selectable in multi choice
+	 *                      operations
+	 */
+	public ChoiceDescription(String option, String description, String additional, P param, boolean notSelectable) {
+		this(option, description, additional, false, param, notSelectable);
 	}
 
 	/**
@@ -193,7 +245,7 @@ public class ChoiceDescription<P> implements Comparable<ChoiceDescription<?>> {
 	 * @param param          the param to associate with this option
 	 */
 	public ChoiceDescription(String option, boolean separatorEntry, P param) {
-		this(option, null, null, separatorEntry, param);
+		this(option, null, null, separatorEntry, param, separatorEntry);
 	}
 
 	/**
@@ -207,7 +259,7 @@ public class ChoiceDescription<P> implements Comparable<ChoiceDescription<?>> {
 	 * @param param          the param to associate with this option
 	 */
 	public ChoiceDescription(String option, String description, boolean separatorEntry, P param) {
-		this(option, description, null, separatorEntry, param);
+		this(option, description, null, separatorEntry, param, separatorEntry);
 	}
 
 	/**
@@ -221,6 +273,23 @@ public class ChoiceDescription<P> implements Comparable<ChoiceDescription<?>> {
 	 * @param param          the param to associate with this option
 	 */
 	public ChoiceDescription(String option, String description, String additional, boolean separatorEntry, P param) {
+		this(option, description, additional, separatorEntry, param, separatorEntry);
+	}
+
+	/**
+	 * Create an instance containing an option, description, additional and param.
+	 * 
+	 * @param option         the text of the option
+	 * @param description    the text of the description
+	 * @param additional     the text of the additional
+	 * @param separatorEntry if true this will be marked as a separator, and the
+	 *                       chooser will display it but not let it be selected
+	 * @param param          the param to associate with this option
+	 * @param notSelectable  marks this as not being selectable in multi choice
+	 *                       operations
+	 */
+	public ChoiceDescription(String option, String description, String additional, boolean separatorEntry, P param,
+			boolean notSelectable) {
 		super();
 		if (option == null) {
 			throw new IllegalArgumentException("Option cannot be null");
@@ -230,6 +299,7 @@ public class ChoiceDescription<P> implements Comparable<ChoiceDescription<?>> {
 		this.additional = additional == null ? EMPTY_TEXT : additional;
 		this.separatorEntry = separatorEntry;
 		this.param = param;
+		this.notSelectable = notSelectable;
 	}
 
 	/**
@@ -237,8 +307,8 @@ public class ChoiceDescription<P> implements Comparable<ChoiceDescription<?>> {
 	 * string that will be displayed when using the chooser)
 	 * 
 	 * @return the option test, for display when choosing an option of potentially
-	 *         to determin the option choice (e.g. if you're selecting an ENUM based
-	 *         on the possible value names)
+	 *         to determine the option choice (e.g. if you're selecting an ENUM
+	 *         based on the possible value names)
 	 */
 	public String getOption() {
 		return option;
@@ -270,8 +340,8 @@ public class ChoiceDescription<P> implements Comparable<ChoiceDescription<?>> {
 	 */
 	@Override
 	public String toString() {
-		return "ChoiceDescription [option=" + option + ", description=" + description + ", additional=" + additional
-				+ ", separatorEntry=" + separatorEntry + ", param=" + param + "]";
+		return "ChoiceDescription [option=" + option + ", selected=" + selected + ", description=" + description
+				+ ", additional=" + additional + ", separatorEntry=" + separatorEntry + ", param=" + param + "]";
 	}
 
 	/**
@@ -284,14 +354,21 @@ public class ChoiceDescription<P> implements Comparable<ChoiceDescription<?>> {
 	 *                       concatenated, if false they will just be concatenated.
 	 *                       This makes it easier to have option, description,
 	 *                       additional if needed in the choice output
-	 * @return text representing the option, description and additional data
+	 * @return text representing the option, description and additional data, if
+	 *         selected is true add (*) after the option as an indicator
 	 */
 	public String getData(boolean separateFields) {
+		String selectionStatus = "";
+		if (notSelectable) {
+			selectionStatus = "(Not selectable)";
+		} else {
+			selectionStatus = (selected ? "(*)" : "");
+		}
 		if (separateFields) {
-			return option + FIELD_SEPARATOR + description + FIELD_SEPARATOR + additional;
+			return option + selectionStatus + FIELD_SEPARATOR + description + FIELD_SEPARATOR + additional;
 		} else {
 
-			return option + description + additional;
+			return option + selectionStatus + description + additional;
 		}
 	}
 
@@ -326,4 +403,90 @@ public class ChoiceDescription<P> implements Comparable<ChoiceDescription<?>> {
 		return separatorEntry;
 	}
 
+	/**
+	 * sets the notSelectable flag and marks as not selected, after calling this
+	 * then the selected flag can never be set.
+	 * 
+	 * @return this to enable chaining of this method
+	 */
+	public ChoiceDescription<P> setNotSelectable() {
+		this.notSelectable = true;
+		this.selected = false;
+		return this;
+	}
+
+	/**
+	 * is this a non selectable choice
+	 * 
+	 * @return true if it is
+	 */
+	public boolean isNotSelectable() {
+		return this.notSelectable;
+	}
+
+	/**
+	 * sets the selected flag, if it is then (*) will be included in the text string
+	 * generated to describe this choice
+	 * 
+	 * @param selected - if this should be selected or not
+	 */
+	public void setSelected(boolean selected) {
+		if (!notSelectable) {
+			this.selected = selected;
+		}
+	}
+
+	/**
+	 * sets the selected flag to be true, (*) will be included in the text string
+	 * generated to describe this choice
+	 * 
+	 */
+	public void markSelected() {
+		this.setSelected(true);
+	}
+
+	/**
+	 * sets the selected flag to be false, no selected indicator will be included in
+	 * the text string generated to describe this choice
+	 * 
+	 */
+	public void markUnselected() {
+		this.setSelected(false);
+	}
+
+	/**
+	 * toggles the selected flag between true / false, if it is true then (*) will
+	 * be included in the text string generated to describe this choice.
+	 * 
+	 * @return the new selected flag value
+	 */
+	public boolean toggleSelected() {
+		this.setSelected(!this.isSelected());
+		return isSelected();
+	}
+
+	/**
+	 * gets the selected flag
+	 * 
+	 * @return the selected flag
+	 */
+	public boolean isSelected() {
+		return selected;
+	}
+
+	/**
+	 * gets the text to be used when listing the options, this may include if this
+	 * is selected or not
+	 * 
+	 * @return the display text
+	 */
+	public String getDisplayText() {
+		String selectionStatus = "";
+		if (notSelectable) {
+			selectionStatus = " (Not selectable)";
+		} else {
+			selectionStatus = (selected ? " (*)" : "");
+		}
+		return option + selectionStatus;
+	}
 }

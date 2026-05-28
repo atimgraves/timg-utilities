@@ -4490,4 +4490,347 @@ public class TextIOUtils {
 		}
 		return cdd;
 	}
+
+	/**
+	 * Allow the user to make a choice zero or times until they chose the multi
+	 * choice complete option. For each choice toggle the selected state for the
+	 * choice (if it's selectable).
+	 * 
+	 * The choice description data MUST have had a addMultiChoiceComplete call made
+	 * against it so the code knows what option indicates the user is finished, if
+	 * it doesn't then an IllegalArgumentException is thrown
+	 * 
+	 * Once the user had chosen the complete option return the choices they have
+	 * made in a list and reset any choices back to not selected so the choice
+	 * description data can be reused.
+	 * 
+	 * The result may be an empty list or a list containing up to all of the options
+	 * provided.
+	 * 
+	 * @param <P>                   the type of param in the choice description data
+	 * @param prompt                the prompt to display when chosing
+	 * @param choiceDescriptionData the data to offer as choices
+	 * @return a list containing zero or more choice descriptions of the selected
+	 *         options
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
+	 */
+	public static <P> List<ChoiceDescription<P>> makeMultiChoiceChoiceDescriptionSelection(String prompt,
+			ChoiceDescriptionData<P> choiceDescriptionData) throws IOException {
+		return makeMultiChoiceChoiceDescriptionSelection(prompt, choiceDescriptionData, true);
+	}
+
+	/**
+	 * Allow the user to make a choice zero or times until they chose the multi
+	 * choice complete option. For each choice toggle the selected state for the
+	 * choice (if it's selectable).
+	 * 
+	 * The choice description data MUST have had a addMultiChoiceComplete call made
+	 * against it so the code knows what option indicates the user is finished, if
+	 * it doesn't then an IllegalArgumentException is thrown
+	 * 
+	 * Once the user had chosen the complete option return the choices they have
+	 * made in a list and reset any choices back to not selected so the choice
+	 * description data can be reused.
+	 * 
+	 * The result may be an empty list or a list containing up to all of the options
+	 * provided.
+	 * 
+	 * As part of the process the selection data can be optionally cleared or
+	 * retained for later use allowing a follow on with the already selected items
+	 * still in place
+	 * 
+	 * @param <P>                   the type of param in the choice description data
+	 * @param prompt                the prompt to display when chosing
+	 * @param choiceDescriptionData the data to offer as choices
+	 * @param clearSelection        if true then the selection will be cleared, if
+	 *                              false it will be retained
+	 * @return a list containing zero or more choice descriptions of the selected
+	 *         options
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
+	 */
+	public static <P> List<ChoiceDescription<P>> makeMultiChoiceChoiceDescriptionSelection(String prompt,
+			ChoiceDescriptionData<P> choiceDescriptionData, boolean clearSelection) throws IOException {
+		if (choiceDescriptionData == null) {
+			throw new IllegalArgumentException("ChoiceDescriptionData cannot be null");
+		}
+		// the choice must have the multi choice / abandon option set as otherwise we
+		// can't figure out our "escape"
+		if (!choiceDescriptionData.isMultiChoiceComplete()) {
+			throw new IllegalArgumentException(
+					"ChoiceDescriptionData must have a multiChoiceComplete / abandon option added, "
+							+ choiceDescriptionData.toString());
+		}
+		while (true) {
+			int choice = getIntChoice(prompt, choiceDescriptionData);
+			if (choiceDescriptionData.isMultiChoiceComplete(choice)) {
+				break;
+			}
+			ChoiceDescription<P> cd = choiceDescriptionData.getChoiceDescription(choice);
+			cd.toggleSelected();
+		}
+		// now get the selected items, this will reset the selection status
+		if (clearSelection) {
+			return choiceDescriptionData.getMultiChoiceSelectedChoiceDescriptionsAndClearSelections();
+		} else {
+			return choiceDescriptionData.getMultiChoiceSelectedChoiceDescriptions();
+		}
+	}
+
+	/**
+	 * Allow the user to make a choice zero or times until they chose the multi
+	 * choice complete option. For each choice toggle the selected state for the
+	 * choice (if it's selectable).
+	 * 
+	 * The choice description data MUST have had a addMultiChoiceComplete call made
+	 * against it so the code knows what option indicates the user is finished, if
+	 * it doesn't then an IllegalArgumentException is thrown
+	 * 
+	 * Once the user had chosen the complete option return the choices they have
+	 * made in a list and reset any choices back to not selected so the choice
+	 * description data can be reused.
+	 * 
+	 * The result may be an empty list or a list containing up to all of the options
+	 * provided.
+	 * 
+	 * @param prompt                the prompt to display when chosing
+	 * @param choiceDescriptionData the data to offer as choices
+	 * @return a list containing zero or more strings of the option, one from each
+	 *         of the selected choice descriptions
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
+	 */
+	public static List<String> makeMultiChoiceOptionSelection(String prompt,
+			ChoiceDescriptionData<?> choiceDescriptionData) throws IOException {
+		return makeMultiChoiceOptionSelection(prompt, choiceDescriptionData, true);
+	}
+
+	/**
+	 * Allow the user to make a choice zero or times until they chose the multi
+	 * choice complete option. For each choice toggle the selected state for the
+	 * choice (if it's selectable).
+	 * 
+	 * The choice description data MUST have had a addMultiChoiceComplete call made
+	 * against it so the code knows what option indicates the user is finished, if
+	 * it doesn't then an IllegalArgumentException is thrown
+	 * 
+	 * Once the user had chosen the complete option return the choices they have
+	 * made in a list and if clearSelection is true reset any choices back to not
+	 * selected so the choice description data can be reused.
+	 * 
+	 * The result may be an empty list or a list containing up to all of the options
+	 * provided.
+	 * 
+	 * As part of the process the selection data can be optionally cleared or
+	 * retained for later use allowing a follow on with the already selected items
+	 * still in place
+	 * 
+	 * @param prompt                the prompt to display when chosing
+	 * @param choiceDescriptionData the data to offer as choices
+	 * @param clearSelection        if true then the selection will be cleared, if
+	 *                              false it will be retained
+	 * @return a list containing zero or more strings of the option, one from each
+	 *         of the selected choice descriptions
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
+	 */
+	public static List<String> makeMultiChoiceOptionSelection(String prompt,
+			ChoiceDescriptionData<?> choiceDescriptionData, boolean clearSelection) throws IOException {
+		return makeMultiChoiceChoiceDescriptionSelection(prompt, choiceDescriptionData, clearSelection).stream()
+				.map(cd -> cd.getOption()).toList();
+	}
+
+	/**
+	 * Allow the user to make a choice zero or times until they chose the multi
+	 * choice complete option. For each choice toggle the selected state for the
+	 * choice (if it's selectable).
+	 * 
+	 * The choice description data MUST have had a addMultiChoiceComplete call made
+	 * against it so the code knows what option indicates the user is finished, if
+	 * it doesn't then an IllegalArgumentException is thrown
+	 * 
+	 * Once the user had chosen the complete option return the choices they have
+	 * made in a list and reset any choices back to not selected so the choice
+	 * description data can be reused.
+	 * 
+	 * The result may be an empty list or a list containing the description from up
+	 * to all of the options provided.
+	 * 
+	 * @param prompt                the prompt to display when chosing
+	 * @param choiceDescriptionData the data to offer as choices
+	 * @return a list containing zero or more strings of the description, one from
+	 *         each of the selected choice descriptions
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
+	 */
+	public static List<String> makeMultiChoiceDescriptionSelection(String prompt,
+			ChoiceDescriptionData<?> choiceDescriptionData) throws IOException {
+		return makeMultiChoiceDescriptionSelection(prompt, choiceDescriptionData, true);
+	}
+
+	/**
+	 * Allow the user to make a choice zero or times until they chose the multi
+	 * choice complete option. For each choice toggle the selected state for the
+	 * choice (if it's selectable).
+	 * 
+	 * The choice description data MUST have had a addMultiChoiceComplete call made
+	 * against it so the code knows what option indicates the user is finished, if
+	 * it doesn't then an IllegalArgumentException is thrown
+	 * 
+	 * Once the user had chosen the complete option return the choices they have
+	 * made in a list and if clearSelection is true reset any choices back to not
+	 * selected so the choice description data can be reused.
+	 * 
+	 * The result may be an empty list or a list containing the description from up
+	 * to all of the options provided.
+	 * 
+	 * As part of the process the selection data can be optionally cleared or
+	 * retained for later use allowing a follow on with the already selected items
+	 * still in place
+	 * 
+	 * @param prompt                the prompt to display when chosing
+	 * @param choiceDescriptionData the data to offer as choices
+	 * @param clearSelection        if true then the selection will be cleared, if
+	 *                              false it will be retained
+	 * @return a list containing zero or more strings of the description, one from
+	 *         each of the selected choice descriptions
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
+	 */
+	public static List<String> makeMultiChoiceDescriptionSelection(String prompt,
+			ChoiceDescriptionData<?> choiceDescriptionData, boolean clearSelection) throws IOException {
+		return makeMultiChoiceChoiceDescriptionSelection(prompt, choiceDescriptionData, clearSelection).stream()
+				.map(cd -> cd.getDescription()).toList();
+	}
+
+	/**
+	 * Allow the user to make a choice zero or times until they chose the multi
+	 * choice complete option. For each choice toggle the selected state for the
+	 * choice (if it's selectable).
+	 * 
+	 * The choice description data MUST have had a addMultiChoiceComplete call made
+	 * against it so the code knows what option indicates the user is finished, if
+	 * it doesn't then an IllegalArgumentException is thrown
+	 * 
+	 * Once the user had chosen the complete option return the choices they have
+	 * made in a list and reset any choices back to not selected so the choice
+	 * description data can be reused.
+	 * 
+	 * The result may be an empty list or a list containing the additional from up
+	 * to all of the options provided.
+	 * 
+	 * @param prompt                the prompt to display when chosing
+	 * @param choiceDescriptionData the data to offer as choices
+	 * @return a list containing zero or more strings of the additional, one from
+	 *         each of the selected choice descriptions
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
+	 */
+	public static List<String> makeMultiChoiceAdditionalSelection(String prompt,
+			ChoiceDescriptionData<?> choiceDescriptionData) throws IOException {
+		return makeMultiChoiceAdditionalSelection(prompt, choiceDescriptionData, true);
+	}
+
+	/**
+	 * Allow the user to make a choice zero or times until they chose the multi
+	 * choice complete option. For each choice toggle the selected state for the
+	 * choice (if it's selectable).
+	 * 
+	 * The choice description data MUST have had a addMultiChoiceComplete call made
+	 * against it so the code knows what option indicates the user is finished, if
+	 * it doesn't then an IllegalArgumentException is thrown
+	 * 
+	 * Once the user had chosen the complete option return the choices they have
+	 * made in a list and if clearSelection is true reset any choices back to not
+	 * selected so the choice description data can be reused.
+	 * 
+	 * The result may be an empty list or a list containing the additional from up
+	 * to all of the options provided.
+	 * 
+	 * As part of the process the selection data can be optionally cleared or
+	 * retained for later use allowing a follow on with the already selected items
+	 * still in place
+	 * 
+	 * @param prompt                the prompt to display when chosing
+	 * @param choiceDescriptionData the data to offer as choices
+	 * @return a list containing zero or more strings of the additional, one from
+	 *         each of the selected choice descriptions
+	 * @param clearSelection if true then the selection will be cleared, if false it
+	 *                       will be retained
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
+	 */
+	public static List<String> makeMultiChoiceAdditionalSelection(String prompt,
+			ChoiceDescriptionData<?> choiceDescriptionData, boolean clearSelection) throws IOException {
+		return makeMultiChoiceChoiceDescriptionSelection(prompt, choiceDescriptionData, clearSelection).stream()
+				.map(cd -> cd.getAdditional()).toList();
+	}
+
+	/**
+	 * Allow the user to make a choice zero or times until they chose the multi
+	 * choice complete option. For each choice toggle the selected state for the
+	 * choice (if it's selectable).
+	 * 
+	 * The choice description data MUST have had a addMultiChoiceComplete call made
+	 * against it so the code knows what option indicates the user is finished, if
+	 * it doesn't then an IllegalArgumentException is thrown
+	 * 
+	 * Once the user had chosen the complete option return the param of the choices
+	 * they have made in a list and reset any choices back to not selected so the
+	 * choice description data can be reused.
+	 * 
+	 * The result may be an empty list or a list containing the param from up to all
+	 * of the options provided.
+	 * 
+	 * @param <P>                   the type of param in the choice description data
+	 * @param prompt                the prompt to display when chosing
+	 * @param choiceDescriptionData the data to offer as choices
+	 * @return a list containing zero or more params from the choice descriptions of
+	 *         the selected options
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
+	 */
+	public static <P> List<P> makeMultiChoiceParamSelection(String prompt,
+			ChoiceDescriptionData<P> choiceDescriptionData) throws IOException {
+		return makeMultiChoiceParamSelection(prompt, choiceDescriptionData, true);
+	}
+
+	/**
+	 * 
+	 * 
+	 * Allow the user to make a choice zero or times until they chose the multi
+	 * choice complete option. For each choice toggle the selected state for the
+	 * choice (if it's selectable).
+	 * 
+	 * The choice description data MUST have had a addMultiChoiceComplete call made
+	 * against it so the code knows what option indicates the user is finished, if
+	 * it doesn't then an IllegalArgumentException is thrown
+	 * 
+	 * Once the user had chosen the complete option return the param of the choices
+	 * they have made in a list and if clearSelection is true reset any choices back
+	 * to not selected so the choice description data can be reused.
+	 * 
+	 * The result may be an empty list or a list containing the param from up to all
+	 * of the options provided.
+	 * 
+	 * As part of the process the selection data can be optionally cleared or
+	 * retained for later use allowing a follow on with the already selected items
+	 * still in place
+	 * 
+	 * @param <P>                   the type of param in the choice description data
+	 * @param prompt                the prompt to display when chosing
+	 * @param choiceDescriptionData the data to offer as choices
+	 * @param clearSelection        if true then the selection will be cleared, if
+	 *                              false it will be retained
+	 * @return a list containing zero or more params from the choice descriptions of
+	 *         the selected options
+	 * @throws IOException if there is a problem setting up the reader on the input
+	 *                     or reading the input
+	 */
+	public static <P> List<P> makeMultiChoiceParamSelection(String prompt,
+			ChoiceDescriptionData<P> choiceDescriptionData, boolean clearSelection) throws IOException {
+		return makeMultiChoiceChoiceDescriptionSelection(prompt, choiceDescriptionData, clearSelection).stream()
+				.map(cd -> cd.getParam()).toList();
+	}
 }

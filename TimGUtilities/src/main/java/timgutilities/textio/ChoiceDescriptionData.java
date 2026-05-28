@@ -39,6 +39,7 @@ SOFTWARE.
 package timgutilities.textio;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -53,9 +54,13 @@ import java.util.stream.Collectors;
  */
 public class ChoiceDescriptionData<P> implements Cloneable {
 	/**
-	 * the deault text to be used for abandon options
+	 * the default text to be used for abandon options
 	 */
 	public final static String ABANDON_TEXT = "Abandon this operation";
+	/**
+	 * the default text to be used to indicate the finished multi choice selection
+	 */
+	public final static String MULTI_CHOICE_FINISHED_TEXT = "Finished selecting";
 	private static final int EXPECTED_MAX_CHOICES = 30; // this is just to minimize array resizing
 	private List<ChoiceDescription<P>> choiceDescriptions = new ArrayList<>(ChoiceDescriptionData.EXPECTED_MAX_CHOICES);
 	private boolean processed = false; // if true then the object has been "finalized" in terms of any sorting, adding
@@ -147,6 +152,16 @@ public class ChoiceDescriptionData<P> implements Cloneable {
 	}
 
 	/**
+	 * Build using var args to let us add multiple choices via an array
+	 * 
+	 * @param choiceDescriptions the choices to include in the list
+	 */
+	@SafeVarargs
+	public ChoiceDescriptionData(ChoiceDescription<P>... choiceDescriptions) {
+		Arrays.stream(choiceDescriptions).forEach(cd -> addChoiceDescription(cd));
+	}
+
+	/**
 	 * Do a shallow clone, with the exception that the list of choice descriptions
 	 * is a new list, but contains the original choice descriptions
 	 */
@@ -212,10 +227,28 @@ public class ChoiceDescriptionData<P> implements Cloneable {
 	}
 
 	/**
+	 * has an abandon option been added ?
+	 * 
+	 * @return true if an abandon option has been added, false if not
+	 */
+	public boolean isAbandonAdded() {
+		return abandonAdded;
+	}
+
+	/**
+	 * has a multiChoiceComplete option been added ?
+	 * 
+	 * @return true if a multiChoiceComplete option has been added, false if not
+	 */
+	public boolean isMultiChoiceComplete() {
+		return isAbandonAdded();
+	}
+
+	/**
 	 * checks if the option at index i is the abandon option
 	 * 
 	 * @param i index of the ChoiceDescription to check
-	 * @return true if it is, ralse if not
+	 * @return true if it is, false if not
 	 */
 	public boolean isAbandoned(int i) {
 		if (abandonAdded) {
@@ -223,6 +256,16 @@ public class ChoiceDescriptionData<P> implements Cloneable {
 		} else {
 			return false;
 		}
+	}
+
+	/**
+	 * checks if the option at index i is the complete multi choice option
+	 * 
+	 * @param i index of the ChoiceDescription to check
+	 * @return true if it is, false if not
+	 */
+	public boolean isMultiChoiceComplete(int i) {
+		return isAbandoned(i);
 	}
 
 	/**
@@ -247,6 +290,91 @@ public class ChoiceDescriptionData<P> implements Cloneable {
 		}
 		choiceDescriptions.remove(i);
 		return true;
+	}
+
+	/**
+	 * set the selected flag on every choice description to be false
+	 */
+	public void clearMultiChoiceSelections() {
+		choiceDescriptions.stream().forEach(cd -> cd.markUnselected());
+	}
+
+	/**
+	 * return an immutable list of all of the choice descriptions that have selected
+	 * true.
+	 * 
+	 * As this list refers to the original choice descriptions then a copy of the
+	 * contents should be made if the called needs long term storage, or the
+	 * relevant elements extracted from the choice descriptions..
+	 * 
+	 * @return a list of the selected choices
+	 */
+	public List<ChoiceDescription<P>> getMultiChoiceSelectedChoiceDescriptions() {
+		return choiceDescriptions.stream().filter(cd -> cd.isSelected()).toList();
+	}
+
+	/**
+	 * return an immutable list of all of the choice descriptions that have selected
+	 * true, then clears the selected flag enabling quick reuse, as the returned
+	 * list has references to the original choice descriptions this means that when
+	 * going over the list they will all be flagged as not selected, so their
+	 * selection status is determined by membership of the returned list, not their
+	 * individual selected status.
+	 * 
+	 * As this list refers to the original choice descriptions then a copy of the
+	 * contents should be made if the called needs long term storage, or the
+	 * relevant elements extracted from the choice descriptions.
+	 * 
+	 * @return a list of the selected choice descriptions
+	 */
+	public List<ChoiceDescription<P>> getMultiChoiceSelectedChoiceDescriptionsAndClearSelections() {
+		List<ChoiceDescription<P>> selected = getMultiChoiceSelectedChoiceDescriptions();
+		clearMultiChoiceSelections();
+		return selected;
+	}
+
+	/**
+	 * return a list containing the option string of the selected choice
+	 * descriptions and clear the selected flags in them all
+	 * 
+	 * @return a list of the option text of the selected choices
+	 */
+	public List<String> getMultiChoiceSelectedOptionsAndClearSelections() {
+		List<ChoiceDescription<P>> selected = getMultiChoiceSelectedChoiceDescriptionsAndClearSelections();
+		return selected.stream().map(cd -> cd.getOption()).toList();
+	}
+
+	/**
+	 * return a list containing the description string of the selected choice
+	 * descriptions and clear the selected flags in them all
+	 * 
+	 * @return a list of the description text of the selected choices
+	 */
+	public List<String> getMultiChoiceSelectedDescriptionsAndClearSelections() {
+		List<ChoiceDescription<P>> selected = getMultiChoiceSelectedChoiceDescriptionsAndClearSelections();
+		return selected.stream().map(cd -> cd.getDescription()).toList();
+	}
+
+	/**
+	 * return a list containing the description string of the selected choice
+	 * descriptions and clear the selected flags in them all
+	 * 
+	 * @return a list of the attitional text or the selected choices
+	 */
+	public List<String> getMultiChoiceSelectedAdditionalsAndClearSelections() {
+		List<ChoiceDescription<P>> selected = getMultiChoiceSelectedChoiceDescriptionsAndClearSelections();
+		return selected.stream().map(cd -> cd.getAdditional()).toList();
+	}
+
+	/**
+	 * return a list containing the param objects of the selected choice
+	 * descriptions and clear the selected flags in them all
+	 * 
+	 * @return a list of the params of the selected choices
+	 */
+	public List<P> getMultiChoiceSelectedParamsAndClearSelections() {
+		List<ChoiceDescription<P>> selected = getMultiChoiceSelectedChoiceDescriptionsAndClearSelections();
+		return selected.stream().map(cd -> cd.getParam()).toList();
 	}
 
 	/**
@@ -419,6 +547,14 @@ public class ChoiceDescriptionData<P> implements Cloneable {
 	 * The abandon option will be added at the end of the list
 	 * 
 	 * Default text will be added as the abandon option.
+	 * 
+	 * This method cannot be called if the ChoiceDescriptionData has already been
+	 * processed.
+	 * 
+	 * If not already done triggers the process of handling sort, making this
+	 * support multiple choices etc, and makes the list read only. It is mutually
+	 * exclusive with the addMultiChoiceCompleteOption and connected methods. Only
+	 * call when you're ready to use this ChoiceDescriptionData.
 	 */
 	public void addAbandonOption() {
 		addAbandonOption(ABANDON_TEXT, false, false);
@@ -435,6 +571,14 @@ public class ChoiceDescriptionData<P> implements Cloneable {
 	 * The abandon option will be added at the end of the list
 	 * 
 	 * Default text will be added as the abandon option.
+	 * 
+	 * This method cannot be called if the ChoiceDescriptionData has already been
+	 * processed.
+	 * 
+	 * If not already done triggers the process of handling sort, making this
+	 * support multiple choices etc, and makes the list read only. It is mutually
+	 * exclusive with the addMultiChoiceCompleteOption and connected methods. Only
+	 * call when you're ready to use this ChoiceDescriptionData.
 	 * 
 	 * @param abandonIsDefault if true the abandon option will be the default option
 	 *                         (possibly overiding a previous one) if false the
@@ -457,6 +601,14 @@ public class ChoiceDescriptionData<P> implements Cloneable {
 	 * 
 	 * Default text will be added as the abandon option.
 	 * 
+	 * This method cannot be called if the ChoiceDescriptionData has already been
+	 * processed.
+	 * 
+	 * If not already done triggers the process of handling sort, making this
+	 * support multiple choices etc, and makes the list read only. It is mutually
+	 * exclusive with the addMultiChoiceCompleteOption and connected methods. Only
+	 * call when you're ready to use this ChoiceDescriptionData.
+	 * 
 	 * @param addFirst         if true the abandon option will be the first entry in
 	 *                         the choices, if false it will be added at the end
 	 * @param abandonIsDefault if true the abandon option will be the default option
@@ -472,6 +624,14 @@ public class ChoiceDescriptionData<P> implements Cloneable {
 	 * of the list
 	 * 
 	 * The text you provide will be used as the abandon text
+	 * 
+	 * This method cannot be called if the ChoiceDescriptionData has already been
+	 * processed.
+	 * 
+	 * If not already done triggers the process of handling sort, making this
+	 * support multiple choices etc, and makes the list read only. It is mutually
+	 * exclusive with the addMultiChoiceCompleteOption and connected methods. Only
+	 * call when you're ready to use this ChoiceDescriptionData.
 	 * 
 	 * @param abandonText the text to use for the abandon option
 	 * @param addFirst    if true the abandon option will be the first entry in the
@@ -492,6 +652,14 @@ public class ChoiceDescriptionData<P> implements Cloneable {
 	 * The abandon option will be added at the end of the list
 	 * 
 	 * The abandon option is not set to the default
+	 * 
+	 * This method cannot be called if the ChoiceDescriptionData has already been
+	 * processed.
+	 * 
+	 * If not already done triggers the process of handling sort, making this
+	 * support multiple choices etc, and makes the list read only. It is mutually
+	 * exclusive with the addMultiChoiceCompleteOption and connected methods. Only
+	 * call when you're ready to use this ChoiceDescriptionData.
 	 * 
 	 * @param abandonText the text to use for the abandon option
 	 */
@@ -516,8 +684,13 @@ public class ChoiceDescriptionData<P> implements Cloneable {
 	 * Only one abandon options is allowed and doing so "freezes" the data
 	 * structure, so you can't add additional entries.
 	 * 
-	 * If not already done triggers the process of handling sort, adding abandons
-	 * etc, and makes the list read only. Only call when you're ready to use this.
+	 * This method cannot be called if the ChoiceDescriptionData has already been
+	 * processed.
+	 * 
+	 * If not already done triggers the process of handling sort, making this
+	 * support multiple choices etc, and makes the list read only. It is mutually
+	 * exclusive with the addMultiChoiceCompleteOption and connected methods. Only
+	 * call when you're ready to use this ChoiceDescriptionData.
 	 * 
 	 * @param abandonText      the text to use for the abandon option
 	 * @param addFirst         where to add the abandon option
@@ -545,6 +718,104 @@ public class ChoiceDescriptionData<P> implements Cloneable {
 			defaultOption = abandonChoice;
 			defaultOptionInt = locateChoiceDescriptionIndexByChoiceDescription(abandonChoice);
 		}
+	}
+
+	/**
+	 * Creates a multi choice is complete option using the default text
+	 * (ChoiceDescriptionData.MULTI_CHOICE_FINISHED_TEXT) at the end of the list and
+	 * makes it the default
+	 * 
+	 * If a multi choice is complete choice has been added then you can use
+	 * isMultiChoice(choice number) to see if it was the multi choice is complete
+	 * that was selected. otherwise you really should be using the param as the
+	 * thing to look for, as otherwise your code may be unhappy it will cause the
+	 * getParam(length()) to return null
+	 * 
+	 * Only one multi choice is complete option is allowed and doing so "freezes"
+	 * the data structure, so you can't add additional entries.
+	 * 
+	 * This method cannot be called if the ChoiceDescriptionData has already been
+	 * processed.
+	 * 
+	 * If not already done triggers the process of handling sort, making this
+	 * support multiple choices etc, and makes the list read only. It is mutually
+	 * exclusive with the addAbandonOption and connected methods. Only call when
+	 * you're ready to use this ChoiceDescriptionData.
+	 */
+	public void addMultiChoiceCompleteOption() {
+		addMultiChoiceCompleteOption(MULTI_CHOICE_FINISHED_TEXT);
+	}
+
+	/**
+	 * Creates a multi choice is complete option using the provided textat the end
+	 * of the liust and makes it the default
+	 * 
+	 * The text you provide will be used as the multi choice is complete text
+	 * 
+	 * If a multi choice is complete choice has been added then you can use
+	 * isMultiChoice(choice number) to see if it was the multi choice is complete
+	 * that was selected. otherwise you really should be using the param as the
+	 * thing to look for, as otherwise your code may be unhappy it will cause the
+	 * getParam(length()) to return null
+	 * 
+	 * Only one multi choice is complete option is allowed and doing so "freezes"
+	 * the data structure, so you can't add additional entries.
+	 * 
+	 * This method cannot be called if the ChoiceDescriptionData has already been
+	 * processed.
+	 * 
+	 * If not already done triggers the process of handling sort, making this
+	 * support multiple choices etc, and makes the list read only. It is mutually
+	 * exclusive with the addAbandonOption and connected methods. Only call when
+	 * you're ready to use this ChoiceDescriptionData.
+	 * 
+	 * @param multiChoiceCompleteText the text to use for the multi choice is
+	 *                                complete option
+	 * 
+	 */
+
+	public void addMultiChoiceCompleteOption(String multiChoiceCompleteText) {
+		addMultiChoiceCompleteOption(multiChoiceCompleteText, false, true);
+	}
+
+	/**
+	 * Creates a multi choice is complete option and you can chose if it is to be
+	 * used as the default and if it is added at the beginning or the end of the
+	 * list
+	 * 
+	 * The text you provide will be used as the multi choice is complete text
+	 * 
+	 * If a multi choice is complete choice has been added then you can use
+	 * isMultiChoice(choice number) to see if it was the multi choice is complete
+	 * that was selected. otherwise you really should be using the param as the
+	 * thing to look for, as otherwise your code may be unhappy it will cause the
+	 * getParam(length()) to return null
+	 * 
+	 * If addFirst is true then the multi chocie is complete option will be at the
+	 * start of the options, if not it will be later
+	 * 
+	 * Only one multi choice is complete option is allowed and doing so "freezes"
+	 * the data structure, so you can't add additional entries.
+	 * 
+	 * This method cannot be called if the ChoiceDescriptionData has already been
+	 * processed.
+	 * 
+	 * If not already done triggers the process of handling sort, making this
+	 * support multiple choices etc, and makes the list read only. It is mutually
+	 * exclusive with the addAbandonOption and connected methods. Only call when
+	 * you're ready to use this ChoiceDescriptionData.
+	 * 
+	 * @param multiChoiceCompleteText      the text to use for the multi choice is
+	 *                                     complete option
+	 * @param addFirst                     where to add the multi choice is complete
+	 *                                     option
+	 * @param multiChoiceCompleteIsDefault if the multi choice is complete option is
+	 *                                     the default choice
+	 * 
+	 */
+	public void addMultiChoiceCompleteOption(String multiChoiceCompleteText, boolean addFirst,
+			boolean multiChoiceCompleteIsDefault) {
+		addAbandonOption(multiChoiceCompleteText, addFirst, multiChoiceCompleteIsDefault);
 	}
 
 	/**
@@ -734,7 +1005,7 @@ public class ChoiceDescriptionData<P> implements Cloneable {
 		String processedPrompt = "";
 		for (int i = 0; i < choiceDescriptions.size(); i++) {
 			ChoiceDescription<P> cd = choiceDescriptions.get(i);
-			processedPrompt = processedPrompt + "\n[" + i + "] = " + cd.getOption();
+			processedPrompt = processedPrompt + "\n[" + i + "] = " + cd.getDisplayText();
 			// if this is the default item
 			if ((defaultOptionInt != null) && (defaultOptionInt == i)) {
 				processedPrompt += " (Default)";

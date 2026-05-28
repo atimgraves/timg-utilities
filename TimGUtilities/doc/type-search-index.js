@@ -1,1 +1,1 @@
-typeSearchIndex = [{"l":"All Classes and Interfaces","u":"allclasses-index.html"},{"p":"timgutilities.textio","l":"TextIOUtils.NUM_TYPE"},{"p":"timgutilities.textio","l":"TextIOUtils"}];updateSearchResults();
+typeSearchIndex = [{"l":"All Classes and Interfaces","u":"allclasses-index.html"},{"p":"timgutilities.textio","l":"ChoiceDescriptionData"}];updateSearchResults();

@@ -44,7 +44,7 @@ import timgutilities.textio.TextIOUtils;
 public class EnumChoiceBuilderTester {
 
 	public enum myoptions {
-		TOM("mot"), DICK("kcid"), HARRY("yrrah");
+		TOM("mot"), DICK("kcid"), HARRY("yrrah"), CLAIRE("erialc"), TIM("mit"), ANDRII("iirdna");
 
 		private String name;
 
